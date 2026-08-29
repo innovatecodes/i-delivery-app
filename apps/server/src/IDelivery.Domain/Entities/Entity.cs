@@ -1,4 +1,4 @@
-namespace IDelivery.Domain.Common.Entities;
+namespace IDelivery.Domain.Entities;
 
 public abstract class Entity
 {

@@ -1,4 +1,4 @@
-using IDelivery.Domain.Common.Entities;
+using IDelivery.Domain.Entities;
 
 namespace IDelivery.Application.Abstractions.Persistence;
 

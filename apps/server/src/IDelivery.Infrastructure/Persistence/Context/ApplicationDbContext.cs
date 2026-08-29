@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using IDelivery.Domain.Common.Entities;
+using IDelivery.Domain.Entities;
 
 namespace IDelivery.Infrastructure.Persistence.Context;
 

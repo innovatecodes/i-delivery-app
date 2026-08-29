@@ -1,7 +1,7 @@
 using IDelivery.Domain.Common.DomainEvents;
 using System.Collections.Generic;
 
-namespace IDelivery.Domain.Common.Entities;
+namespace IDelivery.Domain.Entities;
 
 public abstract class AggregateRoot : Entity
 {
