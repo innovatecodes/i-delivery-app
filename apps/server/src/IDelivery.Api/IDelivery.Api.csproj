@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IDelivery.Application\IDelivery.Application.csproj" />
+    <ProjectReference Include="..\IDelivery.Infrastructure\IDelivery.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

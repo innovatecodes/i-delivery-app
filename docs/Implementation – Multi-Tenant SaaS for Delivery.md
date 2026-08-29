@@ -48,14 +48,26 @@ O agente somente poderá continuar quando o usuário confirmar que o commit foi 
 
 ### Pergunta obrigatória ao final de cada etapa
 
-Após sugerir a mensagem de commit, o agente **deve sempre perguntar** ao usuário o que ele deseja fazer, apresentando opções claras, por exemplo:
+Ao concluir **cada etapa de implementação**, o agente deve obrigatoriamente:
+
+1. Apresentar um resumo objetivo do que foi implementado.
+2. Sugerir a mensagem de commit correspondente à etapa, quando aplicável.
+3. **Interromper a execução e perguntar ao usuário o que deseja fazer em seguida.**
+4. **Nunca assumir uma opção, executar ações automaticamente ou avançar para a próxima etapa sem a resposta explícita do usuário.**
+
+A pergunta deve ser apresentada sempre neste formato:
 
 ```text
-1. Deseja realizar o commit? (Y) ou (N)
-2. Deseja verificar o que foi implementado antes de continuar? (Y) ou (N)
-3. Deseja apontar algum ajuste, ponto específico ou bug no código atual antes de prosseguir? (Y) ou (N)
+O que deseja fazer agora?
+
+0. Deseja seguir para a próxima etapa?
+1. Deseja realizar o commit sugerido?
+2. Deseja verificar/revisar o que foi implementado antes de continuar?
+3. Deseja apontar algum ajuste, ponto específico ou bug no código atual antes de prosseguir?
+
+Informe a opção para confirmar sua decisão no formato:
+0 para (Y), 1 para (Y), 2 para (Y), 3 para (Y) ou qualquer tecla para interromper a execução.
 ```
-Conforme o número de opção escolhida, o agente não deve assumir a resposta nem avançar para a próxima etapa sem que o usuário responda a essa pergunta.
 
 ### Não fazer
 
@@ -142,6 +154,129 @@ Tecnologias:
 - DDD
 - FluentValidation
 - Testes unitários e de integração
+
+### Estrutura final esperada
+
+> **Nota:** A estrutura abaixo é uma referência arquitetural. Não criar arquivos fictícios ou vazios apenas para reproduzir a árvore. Criar somente aquilo que for necessário para o código existente.
+
+Organizar o backend aproximadamente da seguinte maneira:
+
+```text
+apps/
+└── server/
+    ├── src/
+    │   ├── IDelivery.Domain/
+    │   │   ├── Common/
+    │   │   │   ├── Entities/
+    │   │   │   │   ├── Entity.cs
+    │   │   │   │   └── AggregateRoot.cs
+    │   │   │   │
+    │   │   │   ├── ValueObjects/
+    │   │   │   │   └── ValueObject.cs
+    │   │   │   │
+    │   │   │   └── DomainEvents/
+    │   │   │       ├── IDomainEvent.cs
+    │   │   │       └── DomainEvent.cs
+    │   │   │
+    │   │   ├── Errors/
+    │   │   │   └── DomainErrors.cs
+    │   │   │
+    │   │   └── Result.cs
+    │   │
+    │   ├── IDelivery.Application/
+    │   │   ├── Abstractions/
+    │   │   │   ├── Persistence/
+    │   │   │   │   ├── IRepository.cs
+    │   │   │   │   └── IUnitOfWork.cs
+    │   │   │   │
+    │   │   │   ├── Authentication/
+    │   │   │   │   └── ICurrentUser.cs
+    │   │   │   │
+    │   │   │   ├── Services/
+    │   │   │   │   └── IEmailService.cs
+    │   │   │   │
+    │   │   │   └── Events/
+    │   │   │       └── IDomainEventDispatcher.cs
+    │   │   │
+    │   │   ├── CQRS/
+    │   │   │   ├── ICommand.cs
+    │   │   │   ├── ICommandHandler.cs
+    │   │   │   ├── IQuery.cs
+    │   │   │   └── IQueryHandler.cs
+    │   │   │
+    │   │   ├── Common/
+    │   │   │   ├── Behaviors/
+    │   │   │   ├── Exceptions/
+    │   │   │   └── Models/
+    │   │   │
+    │   │   ├── Orders/
+    │   │   │   ├── Commands/
+    │   │   │   │   ├── CreateOrder/
+    │   │   │   │   │   ├── CreateOrderCommand.cs
+    │   │   │   │   │   ├── CreateOrderCommandHandler.cs
+    │   │   │   │   │   └── CreateOrderCommandValidator.cs
+    │   │   │   │   │
+    │   │   │   │   └── CancelOrder/
+    │   │   │   │       ├── CancelOrderCommand.cs
+    │   │   │   │       └── CancelOrderCommandHandler.cs
+    │   │   │   │
+    │   │   │   └── Queries/
+    │   │   │       ├── GetOrder/
+    │   │   │       │   ├── GetOrderQuery.cs
+    │   │   │       │   ├── GetOrderQueryHandler.cs
+    │   │   │       │   └── OrderResponse.cs
+    │   │   │       │
+    │   │   │       └── GetOrders/
+    │   │   │           ├── GetOrdersQuery.cs
+    │   │   │           ├── GetOrdersQueryHandler.cs
+    │   │   │           └── OrderListItemResponse.cs
+    │   │   │
+    │   │   ├── Customers/
+    │   │   │   ├── Commands/
+    │   │   │   └── Queries/
+    │   │   │
+    │   │   ├── Products/
+    │   │   │   ├── Commands/
+    │   │   │   └── Queries/
+    │   │   │
+    │   │   ├── Tenants/
+    │   │   │   ├── Commands/
+    │   │   │   └── Queries/
+    │   │   │
+    │   │   └── DependencyInjection.cs
+    │   │
+    │   ├── IDelivery.Infrastructure/
+    │   │   ├── Persistence/
+    │   │   │   ├── Context/
+    │   │   │   │   └── ApplicationDbContext.cs
+    │   │   │   │
+    │   │   │   ├── Configurations/
+    │   │   │   ├── Repositories/
+    │   │   │   ├── Migrations/
+    │   │   │   └── UnitOfWork.cs
+    │   │   │
+    │   │   ├── Events/
+    │   │   │   └── DomainEventDispatcher.cs
+    │   │   │
+    │   │   ├── Authentication/
+    │   │   ├── Email/
+    │   │   ├── ExternalServices/
+    │   │   └── DependencyInjection.cs
+    │   │
+    │   └── IDelivery.API/
+    │       ├── Controllers/
+    │       ├── Middleware/
+    │       ├── Extensions/
+    │       ├── Configuration/
+    │       ├── Program.cs
+    │       └── appsettings.json
+    │
+    └── tests/
+        ├── IDelivery.Domain.Tests/
+        ├── IDelivery.Application.Tests/
+        ├── IDelivery.Infrastructure.Tests/
+        └── IDelivery.API.Tests/
+```
 
 ## Frontend
 
