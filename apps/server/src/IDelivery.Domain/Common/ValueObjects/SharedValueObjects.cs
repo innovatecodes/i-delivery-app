@@ -17,7 +17,10 @@ public sealed class Email : ValueObject
         @"^[a-z0-9](?:[a-z0-9._+-]*[a-z0-9_+-])?@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$",
         RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-    public string Value { get; }
+    public string Value { get; private set; } = null!;
+
+    // Construtor para EF Core
+    private Email() { }
 
     private Email(string value)
     {
@@ -83,7 +86,10 @@ public sealed class PhoneNumber : ValueObject
     /// Número armazenado somente com dígitos, incluindo código do país 55.
     /// Ex: 5543999999999 (celular) ou 554333333333 (fixo)
     /// </summary>
-    public string Value { get; }
+    public string Value { get; private set; } = null!;
+
+    // Construtor para EF Core
+    private PhoneNumber() { }
 
     private PhoneNumber(string phone)
     {
@@ -136,8 +142,11 @@ public sealed class PhoneNumber : ValueObject
 /// </summary>
 public sealed class Money : ValueObject
 {
-    public decimal Amount { get; }
-    public string Currency { get; }
+    public decimal Amount { get; private set; }
+    public string Currency { get; private set; } = null!;
+
+    // Construtor para EF Core
+    private Money() { }
 
     private Money(decimal amount, string currency = "BRL")
     {
@@ -211,8 +220,11 @@ public sealed class ZipCode : ValueObject
         @"^\d{5}-?\d{3}$",
         RegexOptions.Compiled);
 
-    public string Value { get; }
-    public string DigitsOnly { get; }
+    public string Value { get; private set; } = null!;
+    public string DigitsOnly { get; private set; } = null!;
+
+    // Construtor para EF Core
+    private ZipCode() { }
 
     private ZipCode(string value)
     {
@@ -250,8 +262,11 @@ public sealed class ZipCode : ValueObject
 /// </summary>
 public sealed class Coordinates : ValueObject
 {
-    public decimal Latitude { get; }
-    public decimal Longitude { get; }
+    public decimal Latitude { get; private set; }
+    public decimal Longitude { get; private set; }
+
+    // Construtor para EF Core
+    private Coordinates() { }
 
     private Coordinates(decimal latitude, decimal longitude)
     {
@@ -308,8 +323,11 @@ public sealed class Cnpj : ValueObject
         @"^\d{14}$",
         RegexOptions.Compiled);
 
-    public string Value { get; }
-    public string DigitsOnly { get; }
+    public string Value { get; private set; } = null!;
+    public string DigitsOnly { get; private set; } = null!;
+
+    // Construtor para EF Core
+    private Cnpj() { }
 
     private Cnpj(string value)
     {

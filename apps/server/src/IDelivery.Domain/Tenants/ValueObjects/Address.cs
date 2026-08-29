@@ -13,14 +13,17 @@ namespace IDelivery.Domain.Tenants.ValueObjects;
 /// </summary>
 public sealed class Address : ValueObject
 {
-    public string Street { get; }
-    public string Number { get; }
-    public string? Complement { get; }
-    public string Neighborhood { get; }
-    public string City { get; }
-    public string State { get; }
-    public ZipCode ZipCode { get; }
-    public string? Reference { get; }
+    public string Street { get; private set; } = null!;
+    public string Number { get; private set; } = null!;
+    public string? Complement { get; private set; }
+    public string Neighborhood { get; private set; } = null!;
+    public string City { get; private set; } = null!;
+    public string State { get; private set; } = null!;
+    public ZipCode ZipCode { get; private set; } = null!;
+    public string? Reference { get; private set; }
+
+    // Construtor para EF Core (apenas para materialização)
+    private Address() { }
 
     public Address(
         string street,
@@ -80,9 +83,12 @@ public sealed class Address : ValueObject
 /// </summary>
 public sealed class ContactInfo : ValueObject
 {
-    public Email Email { get; }
-    public PhoneNumber Phone { get; }
-    public PhoneNumber? WhatsApp { get; }
+    public Email Email { get; private set; } = null!;
+    public PhoneNumber Phone { get; private set; } = null!;
+    public PhoneNumber? WhatsApp { get; private set; }
+
+    // Construtor para EF Core (apenas para materialização)
+    private ContactInfo() { }
 
     public ContactInfo(Email email, PhoneNumber phone, PhoneNumber? whatsApp = null)
     {

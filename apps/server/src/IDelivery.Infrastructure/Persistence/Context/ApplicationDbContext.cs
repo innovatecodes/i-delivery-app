@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using IDelivery.Domain.Entities;
+using IDelivery.Domain.Tenants.Entities;
 
 namespace IDelivery.Infrastructure.Persistence.Context;
 
@@ -8,6 +9,8 @@ public class ApplicationDbContext : DbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
+
+    public DbSet<Tenant> Tenants => Set<Tenant>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
