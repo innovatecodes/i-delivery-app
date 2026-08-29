@@ -1,34 +1,9 @@
-// Kernel Compartilhado - Exceptions de Domínio
-// Exceptions base para validações de regras de negócio no domínio.
-// Não dependem de infraestrutura, frameworks ou camadas superiores.
-
-using System.Collections.ObjectModel;
-
 namespace IDelivery.Domain.Common.Exceptions;
-
-/// <summary>
-/// Exception base para erros de domínio.
-/// Carrega uma coleção de mensagens de erro imutável.
-/// </summary>
-public abstract class BaseException : Exception
-{
-    public IReadOnlyCollection<string> Errors { get; }
-
-    protected BaseException(string message) : base(message)
-    {
-        Errors = new ReadOnlyCollection<string>(new List<string> { message });
-    }
-
-    protected BaseException(IEnumerable<string> errors) : base("Um ou mais erros de domínio ocorreram.")
-    {
-        ArgumentNullException.ThrowIfNull(errors, nameof(errors));
-        Errors = new ReadOnlyCollection<string>(errors.ToList());
-    }
-}
 
 /// <summary>
 /// Exception lançada quando uma regra de negócio do domínio é violada.
 /// Utilizada para validações de invariantes, value objects, aggregates, etc.
+/// Não conhece HTTP - apenas representa violação de regra de negócio.
 /// </summary>
 public sealed class DomainException : BaseException
 {
