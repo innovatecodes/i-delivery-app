@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/IDelivery.Api/IDelivery.Api.csproj" />
+    <Project Path="src/IDelivery.Application/IDelivery.Application.csproj" />
+    <Project Path="src/IDelivery.Domain/IDelivery.Domain.csproj" />
+    <Project Path="src/IDelivery.Infrastructure/IDelivery.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IDelivery.IntegrationTests/IDelivery.IntegrationTests.csproj" />
+    <Project Path="tests/IDelivery.UnitTests/IDelivery.UnitTests.csproj" />
+  </Folder>
+</Solution>

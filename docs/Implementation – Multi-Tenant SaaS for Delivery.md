@@ -51,12 +51,11 @@ O agente somente poderá continuar quando o usuário confirmar que o commit foi 
 Após sugerir a mensagem de commit, o agente **deve sempre perguntar** ao usuário o que ele deseja fazer, apresentando opções claras, por exemplo:
 
 ```text
-Deseja realizar o commit? (Y) ou (N)
-Deseja verificar o que foi implementado antes de continuar? (Y) ou (N)
-Deseja apontar algum ajuste, ponto específico ou bug no código atual antes de prosseguir? (Y) ou (N)
+1. Deseja realizar o commit? (Y) ou (N)
+2. Deseja verificar o que foi implementado antes de continuar? (Y) ou (N)
+3. Deseja apontar algum ajuste, ponto específico ou bug no código atual antes de prosseguir? (Y) ou (N)
 ```
-
-O agente não deve assumir a resposta nem avançar para a próxima etapa sem que o usuário responda a essa pergunta.
+Conforme o número de opção escolhida, o agente não deve assumir a resposta nem avançar para a próxima etapa sem que o usuário responda a essa pergunta.
 
 ### Não fazer
 
