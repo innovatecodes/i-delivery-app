@@ -1,7 +1,9 @@
 using IDelivery.Application.Abstractions.CQRS;
+using IDelivery.Application.Commands.Auth;
 using IDelivery.Application.Commands.Tenants;
 using IDelivery.Application.Queries.Tenants;
 using IDelivery.Application.Common.Models;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IDelivery.Application;
@@ -11,54 +13,18 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(
         this IServiceCollection services)
     {
-        RegisterHandlersManually(services);
+        // Registra automaticamente todos os validators encontrados no assembly IDelivery.Application.
+        RegisterValidators(services);
 
+        // Registra manualmente os CommandHandlers e QueryHandlers utilizados pela camada Application.
+        RegisterHandlersManually(services);
+        
         return services;
     }
 
-    /*
-    private static void RegisterHandlersByReflection(
-        IServiceCollection services)
-    {
-        // Obtém o Assembly da camada Application.
-        var assembly = typeof(DependencyInjection).Assembly;
-
-        // Localiza todas as classes concretas e não abstratas
-        // que possuem o sufixo "Handler".
-        var handlers = assembly
-            .GetTypes()
-            .Where(type =>
-                type is { IsClass: true, IsAbstract: false } &&
-                type.Name.EndsWith("Handler"));
-
-        // Registra cada CommandHandler e QueryHandler encontrado
-        // automaticamente na Dependency Injection.
-        foreach (var handler in handlers)
-        {
-            var interfaces = handler.GetInterfaces();
-
-            foreach (var service in interfaces)
-            {
-                // Verifica se a interface representa um CommandHandler
-                // ou QueryHandler antes de registrá-la.
-                if (service.Name.StartsWith("ICommandHandler") ||
-                    service.Name.StartsWith("IQueryHandler"))
-                {
-                    services.AddScoped(service, handler);
-                }
-            }
-        }
-    }
-    */
-
-    // Registra manualmente os CommandHandlers e QueryHandlers
-    // utilizados pela camada Application.
     private static void RegisterHandlersManually(
         IServiceCollection services)
     {
-        // Commands
-
-        // Tenant Commands
         services.AddScoped<
             ICommandHandler<CreateTenantCommand, Guid>,
             CreateTenantCommandHandler>();
@@ -79,9 +45,31 @@ public static class DependencyInjection
             ICommandHandler<UpdateTenantCommand>,
             UpdateTenantCommandHandler>();
 
-        // Queries
+        services.AddScoped<
+            ICommandHandler<RegisterCommand, Guid>,
+            RegisterCommandHandler>();
 
-        // Tenant Queries
+        services.AddScoped<
+            ICommandHandler<LoginCommand, AuthResult>,
+            LoginCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<RefreshTokenCommand, AuthResult>,
+            RefreshTokenCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<ActivateAccountCommand>,
+            ActivateAccountCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<ForgotPasswordCommand>,
+            ForgotPasswordCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<ResetPasswordCommand>,
+            ResetPasswordCommandHandler>();
+
+        // Tenant Queries.
         services.AddScoped<
             IQueryHandler<GetTenantQuery, TenantResponse>,
             GetTenantQueryHandler>();
@@ -89,5 +77,15 @@ public static class DependencyInjection
         services.AddScoped<
             IQueryHandler<GetTenantsQuery, PagedResult<TenantListItemResponse>>,
             GetTenantsQueryHandler>();
+    }
+
+    private static void RegisterValidators(IServiceCollection services)
+    {
+
+        // O CreateTenantCommandValidator é utilizado apenas como referência para identificar o assembly da Application.
+        // O FluentValidation faz o scan de todo o assembly e registra automaticamente todos os validators encontrados, incluindo os validators de Auth, Tenants e outras funcionalidades.
+        services.AddValidatorsFromAssemblyContaining<CreateTenantCommandValidator>();
+
+        //services.AddScoped<IValidator<CreateTenantCommand>, CreateTenantCommandValidator>();
     }
 }
