@@ -4,9 +4,10 @@
     <Project Path="src/IDelivery.Application/IDelivery.Application.csproj" />
     <Project Path="src/IDelivery.Domain/IDelivery.Domain.csproj" />
     <Project Path="src/IDelivery.Infrastructure/IDelivery.Infrastructure.csproj" />
+    <Project Path="src/IDelivery.SharedKernel/IDelivery.SharedKernel.csproj" Id="623e8a91-324b-4e12-b49c-0b743e036834" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/IDelivery.IntegrationTests/IDelivery.IntegrationTests.csproj" />
     <Project Path="tests/IDelivery.UnitTests/IDelivery.UnitTests.csproj" />
+    <Project Path="tests/IDelivery.IntegrationTests/IDelivery.IntegrationTests.csproj" />
   </Folder>
 </Solution>

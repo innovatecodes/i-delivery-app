@@ -1,3 +1,5 @@
+using IDelivery.SharedKernel.Common.Exceptions;
+
 namespace IDelivery.Domain.Common.Exceptions;
 
 /// <summary>
@@ -7,9 +9,18 @@ namespace IDelivery.Domain.Common.Exceptions;
 /// </summary>
 public sealed class DomainException : BaseException
 {
-    public DomainException(string message) : base(message) { }
+    public IReadOnlyCollection<string> Errors { get; }
 
-    public DomainException(IEnumerable<string> errors) : base(errors) { }
+    public DomainException(string message) : base(message)
+    {
+        Errors = new[] { message };
+    }
+
+    public DomainException(IEnumerable<string> errors)
+        : base("Um ou mais erros de domínio ocorreram.")
+    {
+        Errors = errors.ToList();
+    }
 
     /// <summary>
     /// Lança DomainException se a condição for verdadeira.

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using IDelivery.Domain.Entities;
 using IDelivery.Domain.Tenants.Entities;
+using IDelivery.Domain.Users.Entities;
+using IDelivery.Domain.Common.Entities;
 
 namespace IDelivery.Infrastructure.Persistence.Context;
 
@@ -11,6 +12,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,9 +1,3 @@
-// Bounded Context: Roles (Autorização e Permissões)
-// Extensões de domínio para o enum Role.
-// Separadas do enum seguindo responsabilidade única - extensões não fazem parte do conceito de negócio core.
-
-using IDelivery.Domain.Roles.Enums;
-
 namespace IDelivery.Domain.Roles;
 
 /// <summary>
@@ -27,20 +21,5 @@ public static class RoleExtensions
     public static bool IsTenantScoped(this Role role)
     {
         return role != Role.SuperAdmin;
-    }
-
-    /// <summary>
-    /// Retorna a descrição amigável do role.
-    /// </summary>
-    public static string GetDescription(this Role role)
-    {
-        return role switch
-        {
-            Role.SuperAdmin => "Super Administrador",
-            Role.TenantAdmin => "Administrador do Tenant",
-            Role.Delivery => "Entregador",
-            Role.Customer => "Cliente",
-            _ => role.ToString()
-        };
     }
 }

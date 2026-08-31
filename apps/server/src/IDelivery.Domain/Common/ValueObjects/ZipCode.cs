@@ -1,7 +1,3 @@
-// Kernel Compartilhado - Value Objects de Domínio
-// Value Objects reutilizáveis em múltiplos Bounded Contexts.
-// Contêm validação de formato, normalização e igualdade estrutural.
-
 using System.Text.RegularExpressions;
 using IDelivery.Domain.Common.Exceptions;
 

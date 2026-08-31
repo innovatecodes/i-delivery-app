@@ -1,13 +1,9 @@
-// Bounded Context: Tenants (Multi-Tenancy)
-// Contexto delimitado responsável pela gestão de tenants (empresas/restaurantes) no SaaS.
-// Contém: Entities, ValueObjects, Enums, Events, Repositories específicos deste contexto.
-
-using IDelivery.Domain.Common.DomainEvents;
-using IDelivery.Domain.Common.Result;
-using IDelivery.Domain.Entities;
+using IDelivery.SharedKernel.Common.Result;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Tenants.ValueObjects;
 using IDelivery.Domain.Tenants.Enums;
 using IDelivery.Domain.Tenants.Events;
+using IDelivery.Domain.Common.Entities;
 
 namespace IDelivery.Domain.Tenants.Entities;
 
@@ -24,7 +20,9 @@ public sealed class Tenant : AggregateRoot
     public TenantStatus Status { get; private set; }
     public string? LogoUrl { get; private set; }
     public Address? Address { get; private set; }
-    public ContactInfo? ContactInfo { get; private set; }
+    public Email? Email { get; private set; }
+    public PhoneNumber? Phone { get; private set; }
+    public PhoneNumber? WhatsApp { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 
@@ -37,14 +35,18 @@ public sealed class Tenant : AggregateRoot
         string? description,
         string? logoUrl,
         Address? address,
-        ContactInfo? contactInfo) : base(id)
+        Email? email,
+        PhoneNumber? phone,
+        PhoneNumber? whatsApp) : base(id)
     {
         Name = name;
         Slug = slug;
         Description = description;
         LogoUrl = logoUrl;
         Address = address;
-        ContactInfo = contactInfo;
+        Email = email;
+        Phone = phone;
+        WhatsApp = whatsApp;
         Status = TenantStatus.Active;
         CreatedAt = DateTime.UtcNow;
 
@@ -60,7 +62,9 @@ public sealed class Tenant : AggregateRoot
         string? description = null,
         string? logoUrl = null,
         Address? address = null,
-        ContactInfo? contactInfo = null)
+        Email? email = null,
+        PhoneNumber? phone = null,
+        PhoneNumber? whatsApp = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             return Result.Failure<Tenant>(new Error("Tenant.NameRequired", "Nome do tenant é obrigatório"));
@@ -74,7 +78,7 @@ public sealed class Tenant : AggregateRoot
         if (slug.Length > 100)
             return Result.Failure<Tenant>(new Error("Tenant.SlugTooLong", "Slug do tenant deve ter no máximo 100 caracteres"));
 
-        var tenant = new Tenant(Guid.NewGuid(), name.Trim(), slug.Trim().ToLowerInvariant(), description, logoUrl, address, contactInfo);
+        var tenant = new Tenant(Guid.NewGuid(), name.Trim(), slug.Trim().ToLowerInvariant(), description, logoUrl, address, email, phone, whatsApp);
         return Result.Success(tenant);
     }
 
@@ -103,9 +107,11 @@ public sealed class Tenant : AggregateRoot
         return Result.Success();
     }
 
-    public Result UpdateContactInfo(ContactInfo contactInfo)
+    public Result UpdateContactInfo(Email email, PhoneNumber phone, PhoneNumber? whatsApp = null)
     {
-        ContactInfo = contactInfo;
+        Email = email;
+        Phone = phone;
+        WhatsApp = whatsApp;
         UpdatedAt = DateTime.UtcNow;
         return Result.Success();
     }

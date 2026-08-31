@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IDelivery.Domain\IDelivery.Domain.csproj" />
+    <ProjectReference Include="..\IDelivery.SharedKernel\IDelivery.SharedKernel.csproj" />
   </ItemGroup>
 
   <ItemGroup>

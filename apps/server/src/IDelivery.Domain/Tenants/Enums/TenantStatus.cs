@@ -1,6 +1,3 @@
-// Bounded Context: Tenants
-// Enums específicos do contexto de Tenants.
-
 namespace IDelivery.Domain.Tenants.Enums;
 
 /// <summary>

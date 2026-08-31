@@ -71,8 +71,138 @@ namespace IDelivery.Infrastructure.Persistence.Migrations
                     b.ToTable("tenants", "public");
                 });
 
+            modelBuilder.Entity("IDelivery.Domain.Users.Entities.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActivatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activated_at");
+
+                    b.Property<DateTime?>("ActivationTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activation_token_expires_at");
+
+                    b.Property<string>("ActivationTokenHash")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("activation_token_hash");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("full_name");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_login_at");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone_number");
+
+                    b.Property<DateTime?>("ResetPasswordTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reset_password_token_expires_at");
+
+                    b.Property<string>("ResetPasswordTokenHash")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reset_password_token_hash");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("users", "public");
+                });
+
             modelBuilder.Entity("IDelivery.Domain.Tenants.Entities.Tenant", b =>
                 {
+                    b.OwnsOne("IDelivery.Domain.Common.ValueObjects.Email", "Email", b1 =>
+                        {
+                            b1.Property<Guid>("TenantId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("email");
+
+                            b1.HasKey("TenantId");
+
+                            b1.ToTable("tenants", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TenantId");
+                        });
+
+                    b.OwnsOne("IDelivery.Domain.Common.ValueObjects.PhoneNumber", "Phone", b1 =>
+                        {
+                            b1.Property<Guid>("TenantId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("phone");
+
+                            b1.HasKey("TenantId");
+
+                            b1.ToTable("tenants", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TenantId");
+                        });
+
+                    b.OwnsOne("IDelivery.Domain.Common.ValueObjects.PhoneNumber", "WhatsApp", b1 =>
+                        {
+                            b1.Property<Guid>("TenantId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("whatsapp");
+
+                            b1.HasKey("TenantId");
+
+                            b1.ToTable("tenants", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TenantId");
+                        });
+
                     b.OwnsOne("IDelivery.Domain.Tenants.ValueObjects.Address", "Address", b1 =>
                         {
                             b1.Property<Guid>("TenantId")
@@ -154,91 +284,42 @@ namespace IDelivery.Infrastructure.Persistence.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("IDelivery.Domain.Tenants.ValueObjects.ContactInfo", "ContactInfo", b1 =>
-                        {
-                            b1.Property<Guid>("TenantId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<bool>("_contactInfoExists")
-                                .HasColumnType("boolean")
-                                .HasColumnName("contact_info_exists");
-
-                            b1.HasKey("TenantId");
-
-                            b1.ToTable("tenants", "public");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TenantId");
-
-                            b1.OwnsOne("IDelivery.Domain.Common.ValueObjects.Email", "Email", b2 =>
-                                {
-                                    b2.Property<Guid>("ContactInfoTenantId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Value")
-                                        .IsRequired()
-                                        .HasMaxLength(255)
-                                        .HasColumnType("character varying(255)")
-                                        .HasColumnName("contact_email");
-
-                                    b2.HasKey("ContactInfoTenantId");
-
-                                    b2.ToTable("tenants", "public");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("ContactInfoTenantId");
-                                });
-
-                            b1.OwnsOne("IDelivery.Domain.Common.ValueObjects.PhoneNumber", "Phone", b2 =>
-                                {
-                                    b2.Property<Guid>("ContactInfoTenantId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Value")
-                                        .IsRequired()
-                                        .HasMaxLength(20)
-                                        .HasColumnType("character varying(20)")
-                                        .HasColumnName("contact_phone");
-
-                                    b2.HasKey("ContactInfoTenantId");
-
-                                    b2.ToTable("tenants", "public");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("ContactInfoTenantId");
-                                });
-
-                            b1.OwnsOne("IDelivery.Domain.Common.ValueObjects.PhoneNumber", "WhatsApp", b2 =>
-                                {
-                                    b2.Property<Guid>("ContactInfoTenantId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Value")
-                                        .IsRequired()
-                                        .HasMaxLength(20)
-                                        .HasColumnType("character varying(20)")
-                                        .HasColumnName("contact_whatsapp");
-
-                                    b2.HasKey("ContactInfoTenantId");
-
-                                    b2.ToTable("tenants", "public");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("ContactInfoTenantId");
-                                });
-
-                            b1.Navigation("Email")
-                                .IsRequired();
-
-                            b1.Navigation("Phone")
-                                .IsRequired();
-
-                            b1.Navigation("WhatsApp");
-                        });
-
                     b.Navigation("Address");
 
-                    b.Navigation("ContactInfo");
+                    b.Navigation("Email");
+
+                    b.Navigation("Phone");
+
+                    b.Navigation("WhatsApp");
+                });
+
+            modelBuilder.Entity("IDelivery.Domain.Users.Entities.User", b =>
+                {
+                    b.OwnsOne("IDelivery.Domain.Common.ValueObjects.Email", "Email", b1 =>
+                        {
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("email");
+
+                            b1.HasKey("UserId");
+
+                            b1.HasIndex("Value")
+                                .IsUnique()
+                                .HasDatabaseName("ix_users_email");
+
+                            b1.ToTable("users", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId");
+                        });
+
+                    b.Navigation("Email")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

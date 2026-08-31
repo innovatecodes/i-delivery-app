@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using IDelivery.Application.Abstractions.Events;
 using IDelivery.Application.Abstractions.Persistence;
-using IDelivery.Application.Common.Security;
+using IDelivery.Application.Abstractions.Security;
 using IDelivery.Infrastructure.Events;
 using IDelivery.Infrastructure.Persistence;
 using IDelivery.Infrastructure.Persistence.Context;
@@ -24,10 +24,12 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
         // Security
-        services.AddSingleton<IPasswordGenerator, SecurePasswordGenerator>();
-        services.AddSingleton<IApiKeyGenerator, SecurePasswordGenerator>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<ISecureTokenGenerator, SecureTokenGenerator>();
+        services.AddScoped<ITokenHasher, TokenHasher>();
 
         return services;
     }

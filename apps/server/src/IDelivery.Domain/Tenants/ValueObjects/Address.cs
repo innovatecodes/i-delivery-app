@@ -1,7 +1,3 @@
-// Bounded Context: Tenants
-// Value Objects específicos do contexto de Tenants.
-// Compostos por Value Objects do Kernel Compartilhado.
-
 using IDelivery.Domain.Common.ValueObjects;
 
 namespace IDelivery.Domain.Tenants.ValueObjects;
@@ -76,42 +72,3 @@ public sealed class Address : ValueObject
     }
 }
 
-/// <summary>
-/// Informações de contato do tenant.
-/// Value Object composto - imutável, igualdade por componentes.
-/// Utiliza Email e PhoneNumber do kernel compartilhado para validação.
-/// </summary>
-public sealed class ContactInfo : ValueObject
-{
-    public Email Email { get; private set; } = null!;
-    public PhoneNumber Phone { get; private set; } = null!;
-    public PhoneNumber? WhatsApp { get; private set; }
-
-    // Construtor para EF Core (apenas para materialização)
-    private ContactInfo() { }
-
-    public ContactInfo(Email email, PhoneNumber phone, PhoneNumber? whatsApp = null)
-    {
-        Email = email;
-        Phone = phone;
-        WhatsApp = whatsApp;
-    }
-
-    /// <summary>
-    /// Factory method que aceita strings e converte para Value Objects tipados.
-    /// </summary>
-    public static ContactInfo Create(string email, string phone, string? whatsApp = null)
-    {
-        return new ContactInfo(
-            Email.Create(email),
-            PhoneNumber.Create(phone),
-            string.IsNullOrWhiteSpace(whatsApp) ? null : PhoneNumber.Create(whatsApp));
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Email;
-        yield return Phone;
-        yield return WhatsApp;
-    }
-}

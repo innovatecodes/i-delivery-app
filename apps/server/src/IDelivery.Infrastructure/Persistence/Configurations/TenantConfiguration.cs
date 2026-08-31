@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Tenants.Entities;
-using IDelivery.Domain.Tenants.ValueObjects;
 using IDelivery.Domain.Tenants.Enums;
 
 namespace IDelivery.Infrastructure.Persistence.Configurations;
@@ -100,36 +100,28 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
                 .HasMaxLength(200);
         });
 
-        // ContactInfo como Owned Type
-        builder.OwnsOne(t => t.ContactInfo, contactBuilder =>
+        // Email como Owned Type
+        builder.OwnsOne(t => t.Email, emailBuilder =>
         {
-            contactBuilder.OwnsOne(c => c.Email, emailBuilder =>
-            {
-                emailBuilder.Property(e => e.Value)
-                    .HasColumnName("contact_email")
-                    .HasMaxLength(255)
-                    .IsRequired();
-            });
+            emailBuilder.Property(e => e.Value)
+                .HasColumnName("email")
+                .HasMaxLength(255);
+        });
 
-            contactBuilder.OwnsOne(c => c.Phone, phoneBuilder =>
-            {
-                phoneBuilder.Property(p => p.Value)
-                    .HasColumnName("contact_phone")
-                    .HasMaxLength(20)
-                    .IsRequired();
-            });
+        // Phone como Owned Type
+        builder.OwnsOne(t => t.Phone, phoneBuilder =>
+        {
+            phoneBuilder.Property(p => p.Value)
+                .HasColumnName("phone")
+                .HasMaxLength(20);
+        });
 
-            contactBuilder.OwnsOne(c => c.WhatsApp, whatsAppBuilder =>
-            {
-                whatsAppBuilder.Property(w => w.Value)
-                    .HasColumnName("contact_whatsapp")
-                    .HasMaxLength(20);
-            });
-
-            // Required property para EF Core identificar existência do ContactInfo
-            contactBuilder.Property<bool>("_contactInfoExists")
-                .HasColumnName("contact_info_exists")
-                .IsRequired();
+        // WhatsApp como Owned Type
+        builder.OwnsOne(t => t.WhatsApp, whatsAppBuilder =>
+        {
+            whatsAppBuilder.Property(w => w.Value)
+                .HasColumnName("whatsapp")
+                .HasMaxLength(20);
         });
 
         // Domain Events não são persistidos (ignorados)

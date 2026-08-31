@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -20,11 +20,13 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\IDelivery.Infrastructure\IDelivery.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\IDelivery.Api\IDelivery.Api.csproj" />
+    <ProjectReference Include="..\..\src\IDelivery.Infrastructure\IDelivery.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

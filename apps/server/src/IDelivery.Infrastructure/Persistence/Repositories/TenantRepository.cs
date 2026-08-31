@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Domain.Tenants.Entities;
+using IDelivery.Domain.Tenants.Enums;
 using IDelivery.Infrastructure.Persistence.Context;
 
 namespace IDelivery.Infrastructure.Persistence.Repositories;
@@ -36,6 +37,54 @@ public class TenantRepository : ITenantRepository
         return await _context.Tenants
             .AsNoTracking()
             .AnyAsync(t => t.Slug == slug.ToLowerInvariant(), cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Tenant>> GetAllAsync(
+        int page = 1,
+        int pageSize = 20,
+        string? search = null,
+        TenantStatus? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Tenants.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLowerInvariant();
+            query = query.Where(t => t.Name.ToLower().Contains(searchLower) || t.Slug.Contains(searchLower));
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(t => t.Status == status.Value);
+        }
+
+        return await query
+            .OrderBy(t => t.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountAsync(
+        string? search = null,
+        TenantStatus? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Tenants.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLowerInvariant();
+            query = query.Where(t => t.Name.ToLower().Contains(searchLower) || t.Slug.Contains(searchLower));
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(t => t.Status == status.Value);
+        }
+
+        return await query.CountAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<Tenant>> GetAllAsync(CancellationToken cancellationToken = default)
