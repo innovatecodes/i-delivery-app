@@ -27,7 +27,7 @@ public sealed class AuthController : ControllerBase
             return BadRequest(new { error = result.Error.Code, message = result.Error.Message });
         }
 
-        return Ok(new { userId = result.Value, message = "Usuário registrado com sucesso. Verifique seu e-mail para ativação." });
+        return Ok(new { userId = result.Value, message = "Usuário registrado com sucesso. Verifique seu e-mail para ativação" });
     }
 
     [HttpPost("login")]
@@ -79,7 +79,7 @@ public sealed class AuthController : ControllerBase
             return BadRequest(new { error = result.Error.Code, message = result.Error.Message });
         }
 
-        return Ok(new { message = "Se o e-mail existir, você receberá instruções para redefinir a senha." });
+        return Ok(new { message = "Se o e-mail existir, você receberá instruções para redefinir a senha" });
     }
 
     [HttpPost("reset-password")]

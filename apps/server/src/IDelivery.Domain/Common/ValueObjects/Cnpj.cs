@@ -24,10 +24,10 @@ public sealed class Cnpj : ValueObject
         DigitsOnly = CleanCnpj(value);
 
         if (!CnpjRegex.IsMatch(DigitsOnly))
-            throw new DomainException("CNPJ deve conter exatamente 14 dígitos.");
+            throw new DomainException("CNPJ deve conter exatamente 14 dígitos");
 
         if (!IsValidCnpj(DigitsOnly))
-            throw new DomainException("CNPJ inválido.");
+            throw new DomainException("CNPJ inválido");
 
         Value = FormatCnpj(DigitsOnly);
     }
@@ -35,7 +35,7 @@ public sealed class Cnpj : ValueObject
     public static Cnpj Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException("O CNPJ não pode ser vazio.");
+            throw new DomainException("O CNPJ não pode ser vazio");
 
         return new Cnpj(value);
     }

@@ -12,6 +12,6 @@
         }
 
         public static readonly Error None = new(string.Empty, string.Empty);
-        public static readonly Error NullValue = new("Error.NullValue", "O valor não pode ser nulo.");
+        public static readonly Error NullValue = new("Error.NullValue", "O valor não pode ser nulo");
     }
 }

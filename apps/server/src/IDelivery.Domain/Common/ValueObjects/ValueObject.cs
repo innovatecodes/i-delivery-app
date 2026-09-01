@@ -9,7 +9,7 @@ public abstract class ValueObject
 {
     // Método abstrato que cada Value Object concreto deve implementar
     // Retorna todas as propriedades que compõem a igualdade do objeto
-    // Exemplo: em Address, retorna Street, Number, City, etc.
+    // Exemplo: em Address, retorna Street, Number, City, etc
     protected abstract IEnumerable<object?> GetEqualityComponents();
 
     // Sobrescreve o Equals do Object para comparar Value Objects por valor

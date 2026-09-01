@@ -17,10 +17,10 @@ public sealed class Money : ValueObject
     private Money(decimal amount, string currency = "BRL")
     {
         if (amount < 0)
-            throw new DomainException("O valor não pode ser negativo.");
+            throw new DomainException("O valor não pode ser negativo");
 
         if (string.IsNullOrWhiteSpace(currency))
-            throw new DomainException("A moeda não pode ser vazia.");
+            throw new DomainException("A moeda não pode ser vazia");
 
         Amount = Math.Round(amount, 2);
         Currency = currency.Trim().ToUpperInvariant();
@@ -55,14 +55,14 @@ public sealed class Money : ValueObject
     public Money Divide(decimal divisor)
     {
         if (divisor == 0)
-            throw new DivideByZeroException("Não é possível dividir por zero.");
+            throw new DivideByZeroException("Não é possível dividir por zero");
         return Create(Amount / divisor, Currency);
     }
 
     private void EnsureSameCurrency(Money other)
     {
         if (Currency != other.Currency)
-            throw new DomainException("Não é possível operar valores com moedas diferentes.");
+            throw new DomainException("Não é possível operar valores com moedas diferentes");
     }
 
     public static Money operator +(Money left, Money right) => left.Add(right);

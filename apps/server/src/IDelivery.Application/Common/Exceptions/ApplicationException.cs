@@ -19,7 +19,7 @@ public abstract class ApplicationException : BaseException
     }
 
     protected ApplicationException(IEnumerable<string> errors)
-        : base("Um ou mais erros de aplicação ocorreram.")
+        : base("Um ou mais erros de aplicação ocorreram")
     {
         ArgumentNullException.ThrowIfNull(errors);
 

@@ -17,7 +17,7 @@ public sealed class DomainException : BaseException
     }
 
     public DomainException(IEnumerable<string> errors)
-        : base("Um ou mais erros de domínio ocorreram.")
+        : base("Um ou mais erros de domínio ocorreram")
     {
         Errors = errors.ToList();
     }

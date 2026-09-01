@@ -12,19 +12,19 @@ namespace IDelivery.Api.Extensions
         {
             return builder.AddJsonOptions(options =>
             {
-                // Define camelCase como padrão para os nomes das propriedades JSON.
+                // Define camelCase como padrão para os nomes das propriedades JSON
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 
-                // Serializa enums como texto (ex: "SuperAdmin" em vez de "1").
+                // Serializa enums como texto (ex: "SuperAdmin" em vez de "1")
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 
-                // Evita loops em referências circulares.
+                // Evita loops em referências circulares
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 
-                // Ignora propriedades nulas no JSON.
+                // Ignora propriedades nulas no JSON
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 
-                // JSON minificado (sem indentação).
+                // JSON minificado (sem indentação)
                 options.JsonSerializerOptions.WriteIndented = false;
             });
         }

@@ -8,6 +8,6 @@ public sealed class DeleteTenantCommandValidator : AbstractValidator<DeleteTenan
     public DeleteTenantCommandValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id é obrigatório.");
+            .NotEmpty().WithMessage("Id é obrigatório");
     }
 }

@@ -45,7 +45,7 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, AuthResu
 
         if (user.Status != UserStatus.Active)
         {
-            return Result.Failure<AuthResult>(new Error("Auth.AccountNotActive", "Conta não está ativa. Verifique seu e-mail para ativação."));
+            return Result.Failure<AuthResult>(new Error("Auth.AccountNotActive", "Conta não está ativa. Verifique seu e-mail para ativação"));
         }
 
         var refreshToken = _tokenGenerator.Generate(64);

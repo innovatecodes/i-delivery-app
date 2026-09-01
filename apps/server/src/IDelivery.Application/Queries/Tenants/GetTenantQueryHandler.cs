@@ -18,7 +18,7 @@ public sealed class GetTenantQueryHandler : IQueryHandler<GetTenantQuery, Tenant
         var tenant = await _tenantRepository.GetByIdAsync(query.Id, cancellationToken);
         if (tenant is null)
         {
-            return Result.Failure<TenantResponse>(new Error("Tenant.NotFound", "Tenant não encontrado."));
+            return Result.Failure<TenantResponse>(new Error("Tenant.NotFound", "Tenant não encontrado"));
         }
 
         var response = new TenantResponse(

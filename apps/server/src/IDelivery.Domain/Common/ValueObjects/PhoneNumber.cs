@@ -50,20 +50,20 @@ public sealed class PhoneNumber : ValueObject
     private PhoneNumber(string phone)
     {
         if (string.IsNullOrWhiteSpace(phone))
-            throw new DomainException("O número de telefone não pode ser vazio.");
+            throw new DomainException("O número de telefone não pode ser vazio");
 
         var isFormatted = FormattedPhoneRegex.IsMatch(phone);
         var isUnformatted = UnformattedPhoneRegex.IsMatch(phone);
 
         if (!isFormatted && !isUnformatted)
             throw new DomainException(
-                "O número de telefone deve estar no formato (43) 99999-9999 ou 43999999999 para celular, e (43) 3333-3333 ou 4333333333 para telefone fixo.");
+                "O número de telefone deve estar no formato (43) 99999-9999 ou 43999999999 para celular, e (43) 3333-3333 ou 4333333333 para telefone fixo");
 
         var normalized = Regex.Replace(phone, @"[\s()-]", "");
         var areaCode = normalized[..2];
 
         if (!ValidAreaCodes.Contains(areaCode))
-            throw new DomainException($"O DDD '{areaCode}' não é um DDD válido no Brasil.");
+            throw new DomainException($"O DDD '{areaCode}' não é um DDD válido no Brasil");
 
         Value = $"{CountryCode}{normalized}";
     }

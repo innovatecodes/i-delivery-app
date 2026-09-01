@@ -8,70 +8,70 @@ namespace IDelivery.Api.Http;
 /// </summary>
 public static class HttpStatusCodeMessages
 {
-    private const string DefaultMessage = "Erro inesperado.";
+    private const string DefaultMessage = "Erro inesperado";
 
     private static readonly IReadOnlyDictionary<HttpStatusCode, string> Messages =
         new Dictionary<HttpStatusCode, string>
         {
             [HttpStatusCode.OK] =
-                "A solicitação foi bem-sucedida e a resposta contém os dados solicitados.",
+                "A solicitação foi bem-sucedida e a resposta contém os dados solicitados",
 
             [HttpStatusCode.Created] =
-                "A solicitação foi bem-sucedida e resultou na criação de um novo recurso.",
+                "A solicitação foi bem-sucedida e resultou na criação de um novo recurso",
 
             [HttpStatusCode.Accepted] =
-                "A solicitação foi aceita, mas ainda não processada.",
+                "A solicitação foi aceita, mas ainda não processada",
 
             [HttpStatusCode.NoContent] =
-                "A solicitação foi bem-sucedida, mas não há conteúdo para retornar.",
+                "A solicitação foi bem-sucedida, mas não há conteúdo para retornar",
 
             [HttpStatusCode.BadRequest] =
-                "A requisição é inválida ou malformada.",
+                "A requisição é inválida ou malformada",
 
             [HttpStatusCode.Unauthorized] =
-                "Falta de autenticação ou credenciais inválidas.",
+                "Falta de autenticação ou credenciais inválidas",
 
             [HttpStatusCode.Forbidden] =
-                "Acesso ao recurso negado.",
+                "Acesso ao recurso negado",
 
             [HttpStatusCode.NotFound] =
-                "O recurso solicitado não foi encontrado.",
+                "O recurso solicitado não foi encontrado",
 
             [HttpStatusCode.MethodNotAllowed] =
-                "Método HTTP não permitido para este recurso.",
+                "Método HTTP não permitido para este recurso",
 
             [HttpStatusCode.Conflict] =
-                "Conflito ao processar a solicitação. Verifique os dados e tente novamente.",
+                "Conflito ao processar a solicitação. Verifique os dados e tente novamente",
 
             [HttpStatusCode.PaymentRequired] =
-                "Pagamento necessário.",
+                "Pagamento necessário",
 
             [HttpStatusCode.RequestEntityTooLarge] =
-                "O arquivo enviado é muito grande. O limite de tamanho foi excedido.",
+                "O arquivo enviado é muito grande. O limite de tamanho foi excedido",
 
             [HttpStatusCode.UnsupportedMediaType] =
-                "O tipo de mídia enviado não é suportado. Verifique o formato do arquivo.",
+                "O tipo de mídia enviado não é suportado. Verifique o formato do arquivo",
 
             [HttpStatusCode.TooManyRequests] =
-                "Número de requisições excedeu o limite.",
+                "Número de requisições excedeu o limite",
 
             [HttpStatusCode.InternalServerError] =
-                "Erro interno do servidor. Por favor, tente novamente mais tarde.",
+                "Erro interno do servidor. Por favor, tente novamente mais tarde",
 
             [HttpStatusCode.NotImplemented] =
-                "Funcionalidade solicitada não implementada no servidor.",
+                "Funcionalidade solicitada não implementada no servidor",
 
             [HttpStatusCode.BadGateway] =
-                "O servidor recebeu uma resposta inválida ao acessar outro servidor.",
+                "O servidor recebeu uma resposta inválida ao acessar outro servidor",
 
             [HttpStatusCode.ServiceUnavailable] =
-                "O servidor está temporariamente indisponível devido a manutenção ou sobrecarga.",
+                "O servidor está temporariamente indisponível devido a manutenção ou sobrecarga",
 
             [HttpStatusCode.Gone] =
-                "O recurso não está mais disponível.",
+                "O recurso não está mais disponível",
 
             [HttpStatusCode.GatewayTimeout] =
-                "O servidor não recebeu uma resposta a tempo ao acessar outro servidor."
+                "O servidor não recebeu uma resposta a tempo ao acessar outro servidor"
         };
 
     /// <summary>

@@ -113,6 +113,6 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         if (statusCode != HttpStatusCode.InternalServerError)
             return exception.Message;
 
-        return "Ocorreu um erro interno no servidor.";
+        return "Ocorreu um erro interno no servidor";
     }
 }

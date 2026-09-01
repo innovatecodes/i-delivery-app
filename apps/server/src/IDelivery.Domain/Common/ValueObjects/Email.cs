@@ -21,11 +21,11 @@ public sealed class Email : ValueObject
     private Email(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException("O e-mail não pode ser vazio.");
+            throw new DomainException("O e-mail não pode ser vazio");
 
         var trimmed = value.Trim().ToLowerInvariant();
         if (!EmailRegex.IsMatch(trimmed))
-            throw new DomainException("Formato de e-mail inválido.");
+            throw new DomainException("Formato de e-mail inválido");
 
         Value = trimmed;
     }

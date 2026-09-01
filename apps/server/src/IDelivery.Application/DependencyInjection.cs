@@ -13,10 +13,10 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(
         this IServiceCollection services)
     {
-        // Registra automaticamente todos os validators encontrados no assembly IDelivery.Application.
+        // Registra automaticamente todos os validators encontrados no assembly IDelivery.Application
         RegisterValidators(services);
 
-        // Registra manualmente os CommandHandlers e QueryHandlers utilizados pela camada Application.
+        // Registra manualmente os CommandHandlers e QueryHandlers utilizados pela camada Application
         RegisterHandlersManually(services);
         
         return services;
@@ -69,7 +69,7 @@ public static class DependencyInjection
             ICommandHandler<ResetPasswordCommand>,
             ResetPasswordCommandHandler>();
 
-        // Tenant Queries.
+        // Tenant Queries
         services.AddScoped<
             IQueryHandler<GetTenantQuery, TenantResponse>,
             GetTenantQueryHandler>();
@@ -82,8 +82,8 @@ public static class DependencyInjection
     private static void RegisterValidators(IServiceCollection services)
     {
 
-        // O CreateTenantCommandValidator é utilizado apenas como referência para identificar o assembly da Application.
-        // O FluentValidation faz o scan de todo o assembly e registra automaticamente todos os validators encontrados, incluindo os validators de Auth, Tenants e outras funcionalidades.
+        // O CreateTenantCommandValidator é utilizado apenas como referência para identificar o assembly da Application
+        // O FluentValidation faz o scan de todo o assembly e registra automaticamente todos os validators encontrados, incluindo os validators de Auth, Tenants e outras funcionalidades
         services.AddValidatorsFromAssemblyContaining<CreateTenantCommandValidator>();
 
         //services.AddScoped<IValidator<CreateTenantCommand>, CreateTenantCommandValidator>();

@@ -26,7 +26,7 @@ public sealed class CreateTenantCommandHandler : ICommandHandler<CreateTenantCom
     {
         if (await _tenantRepository.ExistsBySlugAsync(command.Slug, cancellationToken))
         {
-            return Result.Failure<Guid>(new Error("Tenant.SlugAlreadyExists", "Slug já está em uso."));
+            return Result.Failure<Guid>(new Error("Tenant.SlugAlreadyExists", "Slug já está em uso"));
         }
 
         var tenantResult = Tenant.Create(

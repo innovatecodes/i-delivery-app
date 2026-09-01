@@ -19,7 +19,7 @@ public sealed class DeleteTenantCommandHandler : ICommandHandler<DeleteTenantCom
         var tenant = await _tenantRepository.GetByIdAsync(command.Id, cancellationToken);
         if (tenant is null)
         {
-            return Result.Failure(new Error("Tenant.NotFound", "Tenant não encontrado."));
+            return Result.Failure(new Error("Tenant.NotFound", "Tenant não encontrado"));
         }
 
         // Usa Block() como soft delete (marca como bloqueado)

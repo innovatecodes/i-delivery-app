@@ -9,9 +9,9 @@ public class Result
     protected Result(bool isSuccess, Error error)
     {
         if (isSuccess && error != Error.None)
-            throw new InvalidOperationException("Sucesso não pode ter erro.");
+            throw new InvalidOperationException("Sucesso não pode ter erro");
         if (!isSuccess && error == Error.None)
-            throw new InvalidOperationException("Falha deve ter um erro.");
+            throw new InvalidOperationException("Falha deve ter um erro");
 
         IsSuccess = isSuccess;
         Error = error;
@@ -35,7 +35,7 @@ public class Result<TValue> : Result
 
     public TValue Value => IsSuccess
         ? _value!
-        : throw new InvalidOperationException("Não é possível acessar o valor de um resultado falho.");
+        : throw new InvalidOperationException("Não é possível acessar o valor de um resultado falho");
 
     public static implicit operator Result<TValue>(TValue value) => Success(value);
 }

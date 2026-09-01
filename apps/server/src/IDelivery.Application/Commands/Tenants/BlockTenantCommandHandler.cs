@@ -19,7 +19,7 @@ public sealed class BlockTenantCommandHandler : ICommandHandler<BlockTenantComma
         var tenant = await _tenantRepository.GetByIdAsync(command.Id, cancellationToken);
         if (tenant is null)
         {
-            return Result.Failure(new Error("Tenant.NotFound", "Tenant não encontrado."));
+            return Result.Failure(new Error("Tenant.NotFound", "Tenant não encontrado"));
         }
 
         var result = tenant.Block();

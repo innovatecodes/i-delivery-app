@@ -22,11 +22,11 @@ public sealed class ZipCode : ValueObject
     private ZipCode(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException("O CEP não pode ser vazio.");
+            throw new DomainException("O CEP não pode ser vazio");
 
         var cleaned = CleanZipCode(value);
         if (!ZipCodeRegex.IsMatch(cleaned))
-            throw new DomainException("Formato de CEP brasileiro inválido (esperado: 00000-000).");
+            throw new DomainException("Formato de CEP brasileiro inválido (esperado: 00000-000)");
 
         DigitsOnly = cleaned.Replace("-", "");
         Value = FormatZipCode(DigitsOnly);

@@ -6,7 +6,7 @@ public abstract class Entity
 
     protected Entity() => Id = Guid.NewGuid();
 
-    protected Entity(Guid id) => Id = id == Guid.Empty ? throw new ArgumentException("O id da entidade não pode ser vazio.", nameof(id)) : id;
+    protected Entity(Guid id) => Id = id == Guid.Empty ? throw new ArgumentException("O id da entidade não pode ser vazio", nameof(id)) : id;
     
     public override bool Equals(object? obj)
     {
