@@ -3,9 +3,15 @@ using IDelivery.Application.Commands.Auth;
 using IDelivery.Application.Commands.Tenants;
 using IDelivery.Application.Commands.Catalog;
 using IDelivery.Application.Commands.Carts;
+using IDelivery.Application.Commands.Customers;
+using IDelivery.Application.Commands.Delivery;
+using IDelivery.Application.Commands.Orders;
 using IDelivery.Application.Queries.Tenants;
 using IDelivery.Application.Queries.Catalog;
 using IDelivery.Application.Queries.Carts;
+using IDelivery.Application.Queries.Customers;
+using IDelivery.Application.Queries.Delivery;
+using IDelivery.Application.Queries.Orders;
 using IDelivery.Application.Common.Models;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -151,6 +157,96 @@ public static class DependencyInjection
         services.AddScoped<
             IQueryHandler<GetCartQuery, CartResponse>,
             GetCartQueryHandler>();
+
+        // Customer Commands
+        services.AddScoped<
+            ICommandHandler<CreateCustomerCommand, Guid>,
+            CreateCustomerCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<UpdateCustomerCommand>,
+            UpdateCustomerCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<DeleteCustomerCommand>,
+            DeleteCustomerCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<AddCustomerAddressCommand, Guid>,
+            AddCustomerAddressCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<RemoveCustomerAddressCommand>,
+            RemoveCustomerAddressCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<SetDefaultCustomerAddressCommand>,
+            SetDefaultCustomerAddressCommandHandler>();
+
+        // Customer Queries
+        services.AddScoped<
+            IQueryHandler<GetCustomerQuery, CustomerResponse>,
+            GetCustomerQueryHandler>();
+
+        // Delivery Commands
+        services.AddScoped<
+            ICommandHandler<CreateDeliverySettingsCommand, Guid>,
+            CreateDeliverySettingsCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<UpdateDeliverySettingsCommand>,
+            UpdateDeliverySettingsCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<DeleteDeliverySettingsCommand>,
+            DeleteDeliverySettingsCommandHandler>();
+
+        // Delivery Queries
+        services.AddScoped<
+            IQueryHandler<GetDeliverySettingsQuery, DeliverySettingsResponse>,
+            GetDeliverySettingsQueryHandler>();
+
+        // Order Commands
+        services.AddScoped<
+            ICommandHandler<CreateOrderCommand, Guid>,
+            CreateOrderCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<ConfirmOrderCommand>,
+            ConfirmOrderCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<StartPreparingOrderCommand>,
+            StartPreparingOrderCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<MarkOrderReadyForDeliveryCommand>,
+            MarkOrderReadyForDeliveryCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<StartDeliveryCommand>,
+            StartDeliveryCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<DeliverOrderCommand>,
+            DeliverOrderCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<FailDeliveryCommand>,
+            FailDeliveryCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<CancelOrderCommand>,
+            CancelOrderCommandHandler>();
+
+        // Order Queries
+        services.AddScoped<
+            IQueryHandler<GetOrderQuery, OrderResponse>,
+            GetOrderQueryHandler>();
+
+        services.AddScoped<
+            IQueryHandler<GetOrdersQuery, PagedResult<OrderListItemResponse>>,
+            GetOrdersQueryHandler>();
     }
 
     private static void RegisterValidators(IServiceCollection services)

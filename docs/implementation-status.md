@@ -1,7 +1,7 @@
 # Implementation Status
 
 ## Última análise
-Data: 2026-09-01 (atualizado B09)
+Data: 2026-09-01 (atualizado B11, B12)
 
 ## Backend
 | Etapa | Status | Evidências | Próxima ação |
@@ -15,9 +15,9 @@ Data: 2026-09-01 (atualizado B09)
 | B07 — Multi-tenancy | CONCLUÍDA | ICurrentUser.TenantId, CurrentUserService extrai tenant_id do JWT, ITenantContext, TenantContext, JwtTokenService inclui tenant_id no token, User.TenantId | — |
 | B08 — Catálogo | CONCLUÍDA | Domain: Category e Product aggregates, Money VO, domain events. Application: ICategoryRepository, IProductRepository, Create/Update/Delete commands + handlers + validators, Get/GetAll queries + handlers. Infrastructure: CategoryConfiguration, ProductConfiguration, CategoryRepository, ProductRepository, ApplicationDbContext atualizado, Migration AddCatalogTables. Tests: 18 unitários (CategoryTests + ProductTests) | — |
 | B09 — Carrinho | CONCLUÍDA | Domain: Cart aggregate (Cart + CartItem), 4 domain events (Created, ItemAdded, ItemRemoved, CartCleared). Application: ICartRepository, Add/Remove/UpdateQuantity/Clear commands + handlers + validators, GetCart query + handler. Infrastructure: CartConfiguration, CartItemConfiguration, CartRepository, ApplicationDbContext atualizado com Carts/CartItems DbSets, Migration AddCartTables. DI registrations atualizados. Tests: 154 unitários passando. | — |
-| B10 — Customer e endereço | NÃO IMPLEMENTADA | Address VO existe em Tenant | — |
-| B11 — Delivery settings | NÃO IMPLEMENTADA | — | — |
-| B12 — Pedido e checkout | NÃO IMPLEMENTADA | — | — |
+| B10 — Customer e endereço | CONCLUÍDA | Domain: Customer aggregate (Customer + CustomerAddress), 4 domain events (Created, Updated, AddressAdded, AddressRemoved). Application: ICustomerRepository, Create/Update/Delete/AddAddress/RemoveAddress/SetDefaultAddress commands + handlers + validators, GetCustomer query + handler. Infrastructure: CustomerConfiguration, CustomerAddressConfiguration, CustomerRepository, ApplicationDbContext atualizado com Customers/CustomerAddresses DbSets, Migration AddCustomerTables. DI registrations atualizados. Tests: 154 unitários passando. | — |
+| B11 — Delivery settings | CONCLUÍDA | Domain: DeliverySettings aggregate, DeliveryFeeType enum (Free, FreeAboveAmount, Fixed, PerDistance), 2 domain events (Created, Updated), CalculateFee method. Application: IDeliverySettingsRepository, Create/Update/Delete commands + handlers + validators, GetDeliverySettings query + handler. Infrastructure: DeliverySettingsConfiguration, DeliverySettingsRepository, ApplicationDbContext atualizado com DeliverySettings DbSet, Migration AddDeliverySettingsTable. DI registrations atualizados. Tests: 154 unitários passando. | — |
+| B12 — Pedido e checkout | CONCLUÍDA | Domain: Order aggregate (Order + OrderItem snapshot), OrderState enum (Pending→Confirmed→Preparing→ReadyForDelivery→OutForDelivery→Delivered|DeliveryFailed|Cancelled), DeliveryFailureReason enum, 5 domain events (Created, StatusChanged, Delivered, DeliveryFailed, Cancelled). Transições controladas com autoridade: Deliver/FailDelivery só pelo entregador atribuído; Cancel até ReadyForDelivery por Tenant/Cliente/Sistema. Application: IOrderRepository, Create/Confirm/StartPreparing/MarkReady/StartDelivery/Deliver/FailDelivery/Cancel commands + handlers + validators, GetOrder/GetOrders queries + handlers. Infrastructure: OrderConfiguration, OrderItemConfiguration, OrderRepository, ApplicationDbContext atualizado com Orders/OrderItems DbSets, Migration AddOrderTables. DI registrations atualizados. Tests: 154 unitários passando. | — |
 | B13 — Pagamento V1 | NÃO IMPLEMENTADA | — | — |
 | B14 — Gestão de pedidos | NÃO IMPLEMENTADA | — | — |
 | B15 — Delivery | NÃO IMPLEMENTADA | — | — |
@@ -54,11 +54,12 @@ Data: 2026-09-01 (atualizado B09)
 - Backend tests: **154 unit + 29 integration** (todos passando)
 
 ## Próxima etapa recomendada
-**B10 — Customer e endereço** - Implementar:
-1. Customer aggregate
-2. Address VO
-3. Commands e Queries para CRUD
-4. Persistência com EF Core
-5. Testes unitários e de integração
+**B13 — Pagamento V1** - Implementar:
+1. Payment aggregate com estados (Pending, Paid, NotCollected)
+2. Métodos CASH e CARD_ON_DELIVERY
+3. Abstração extensível para métodos futuros
+4. Integração com B12.1: pagamento só é PAID quando Deliver confirmado
+5. Persistência com EF Core
+6. Testes unitários e de integração
 
-Dependências resolvidas: B04 Tenant, B05 Users, B06 Auth, B07 Multi-tenancy, B08 Catálogo, B09 Carrinho.
+Dependências resolvidas: B04 Tenant, B05 Users, B06 Auth, B07 Multi-tenancy, B08 Catálogo, B09 Carrinho, B10 Customer, B11 Delivery settings, B12 Pedido.

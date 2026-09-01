@@ -422,10 +422,15 @@ Sair para entrega
     ↓
 Rastreamento/geolocalização
     ↓
-Entregar
+Chegou ao destino / tentativa de entrega
     ↓
-Confirmar entrega
+Entregador confirma o resultado
+    ├─→ DELIVERED         (entregue com sucesso)
+    └─→ DELIVERY_FAILED   (não conseguiu entregar — motivo obrigatório)
 ```
+
+> O entregador é a autoridade que confirma o **resultado da entrega** (`DELIVERED` ou `DELIVERY_FAILED`). Ele não possui autoridade para `CANCELLED` — cancelamento é tratado por regra/autorização específica (ver B12.1).
+> Detalhamento completo do fluxo de confirmação, estados e sua relação com o pagamento está em **B12.1 — Confirmação de resultado da entrega**.
 
 ## 7.5 Super Admin
 
@@ -575,11 +580,64 @@ V1:
 - criação
 - limpeza do carrinho
 
+## B12.1 — Confirmação de resultado da entrega
+
+Este bloco define **quem tem autoridade para confirmar o resultado de uma entrega**, quais estados existem e como isso se conecta ao pagamento. Ele complementa B12, B13, B15, B18 e F09 e deve ser tratado como requisito obrigatório, não como detalhe de UI.
+
+### Estados de resultado
+
+O fluxo "saiu para entrega → entregou → confirmar entrega" não é suficiente. É necessário separar explicitamente:
+
+```text
+DELIVERED         → cliente recebeu o pedido
+DELIVERY_FAILED   → entregador tentou entregar, mas não conseguiu
+CANCELLED         → pedido foi cancelado por uma regra/autorização específica
+```
+
+`DELIVERY_FAILED` e `CANCELLED` são estados distintos e não podem ser tratados como sinônimos:
+
+- `DELIVERY_FAILED` parte de uma tentativa real de entrega (o entregador chegou ao destino, mas não conseguiu concluir — cliente ausente, endereço incorreto, recusa no ato, etc.).
+- `CANCELLED` pode ocorrer sem tentativa de entrega (ex: tenant cancela antes de despachar, cliente cancela ainda em `PENDING`/`CONFIRMED`).
+
+### Autoridade de confirmação
+
+| Estado            | Quem pode disparar                          | Observações |
+|--------------------|----------------------------------------------|-------------|
+| `DELIVERED`         | Entregador                                    | Ação explícita no painel de delivery, não é inferida automaticamente por geolocalização. |
+| `DELIVERY_FAILED`   | Entregador                                    | Exige motivo obrigatório (ver abaixo). |
+| `CANCELLED`         | Tenant e/ou Cliente e/ou Sistema, conforme regra por estado | Entregador **não** possui autoridade para cancelar; ele só relata falha de entrega. |
+
+O agente deve implementar essa autoridade como regra de autorização no Handler correspondente, não apenas como restrição de UI (o frontend pode ocultar a ação, mas o backend deve validar quem está autorizado a executar a transição).
+
+### Motivo obrigatório em `DELIVERY_FAILED`
+
+Quando o entregador seleciona que não conseguiu entregar, o sistema deve exigir um motivo. V1 pode adotar um enum fechado (ex: `CUSTOMER_ABSENT`, `ADDRESS_NOT_FOUND`, `CUSTOMER_REFUSED`, `OTHER`) com campo de texto livre complementar quando `OTHER`. O motivo deve ser persistido junto ao pedido/entrega, não apenas exibido e descartado.
+
+### Transições permitidas
+
+Nem todo estado pode cancelar a partir de qualquer ponto. O domínio deve definir explicitamente a partir de quais estados `CANCELLED` é permitido (ex: até `PREPARING`, não mais permitido a partir de `OUT_FOR_DELIVERY` — a definir com o negócio). `DELIVERY_FAILED` e `DELIVERED` só são alcançáveis a partir de `OUT_FOR_DELIVERY`.
+
+### Relação com o pagamento
+
+Ver B13 para a definição de quando o pagamento é considerado concluído. Em resumo:
+
+- `DELIVERED` com `CASH`/`CARD_ON_DELIVERY` é o evento que marca o pagamento como recebido.
+- `DELIVERY_FAILED` e `CANCELLED` não geram pagamento recebido; o pedido permanece sem cobrança efetivada.
+
 ## B13 — Pagamento V1
 
 - CASH
 - CARD_ON_DELIVERY
 - abstração extensível
+
+### Quando o pagamento é considerado concluído
+
+Para `CASH` e `CARD_ON_DELIVERY`, o pagamento não é confirmado no checkout — ele é recebido fisicamente no momento da entrega. Portanto:
+
+- O pagamento deve possuir estado próprio, independente do estado do pedido (ex: `PENDING`, `PAID`, `NOT_COLLECTED`).
+- `PAID` só é atingido quando o entregador confirma `DELIVERED` (ver B12.1) — esse é o gatilho de negócio, não a criação do pedido nem a saída para entrega.
+- Se o resultado for `DELIVERY_FAILED` ou `CANCELLED`, o pagamento permanece `NOT_COLLECTED`/`PENDING` conforme regra a definir; não deve ser marcado como `PAID`.
+- Métodos de pagamento pagos antecipadamente (fora do escopo V1, mas previstos pela abstração extensível) terão gatilho de conclusão diferente (na confirmação do provedor, não na entrega) — a abstração deve permitir essa diferença sem acoplar a regra de conclusão a `DELIVERED`.
 
 ## B14 — Gestão de pedidos
 
@@ -595,6 +653,9 @@ V1:
 - associação ao tenant
 - atribuição
 - fluxo de entrega
+- confirmação de resultado da entrega (`DELIVERED` / `DELIVERY_FAILED` com motivo obrigatório) — ver B12.1 para autoridade, estados e transições permitidas
+- persistência do motivo de falha vinculado ao pedido/entrega
+- validação de autorização: apenas o entregador atribuído àquela entrega pode confirmar seu resultado
 
 ## B16 — Rastreamento
 
@@ -626,6 +687,18 @@ V1:
 - lidas/não lidas
 
 O agente deve avaliar cada requisito individualmente. Uma implementação parcial de e-mail não significa automaticamente que B18 está concluída.
+
+### Eventos de resultado da entrega
+
+A confirmação de resultado definida em B12.1 deve disparar Domain Events específicos, consumidos para notificar cliente e tenant:
+
+```text
+OrderDeliveredDomainEvent
+OrderDeliveryFailedDomainEvent
+OrderCancelledDomainEvent
+```
+
+`OrderDeliveryFailedDomainEvent` deve carregar o motivo da falha. Esses eventos não substituem os eventos genéricos de mudança de estado do pedido já previstos — são específicos para o resultado final da entrega, pois o cliente e o tenant precisam de conteúdo de notificação diferente para cada caso (ex: "seu pedido foi entregue" vs. "não conseguimos entregar seu pedido: motivo").
 
 ## B19 — API e qualidade
 
@@ -834,6 +907,13 @@ Os exemplos acima são ilustrativos. Não criar endpoints automaticamente.
 - status
 - confirmação
 - mapa/rastreamento
+
+### Tela de confirmação de resultado
+
+- Ação explícita e separada para "Entregue" e "Não foi possível entregar" (não usar um único botão genérico de "confirmar").
+- Ao selecionar "Não foi possível entregar", exibir seleção de motivo (enum) com campo de texto livre quando aplicável (ver B12.1/B15).
+- A ação de cancelar pedido **não** fica disponível nesta tela para o entregador — cancelamento pertence a tenant/cliente/sistema (ver B12.1).
+- Feedback visual de que a ação é irreversível antes de confirmar (dialog de confirmação), já que ela dispara a conclusão do pagamento no caso de `CASH`/`CARD_ON_DELIVERY`.
 
 ## F10 — Super Admin
 
@@ -1106,10 +1186,12 @@ PENDING
 → PREPARING
 → READY_FOR_DELIVERY
 → OUT_FOR_DELIVERY
-→ DELIVERED
+→ DELIVERED | DELIVERY_FAILED
 ```
 
-Com cancelamento somente nas transições permitidas.
+A partir de `OUT_FOR_DELIVERY`, o pedido não vai automaticamente para `DELIVERED`: o resultado é um dos dois estados terminais de entrega (`DELIVERED` ou `DELIVERY_FAILED`), confirmado pelo entregador. `CANCELLED` é um estado terminal à parte, alcançável apenas nas transições permitidas (a definir por estado) e não é de autoridade do entregador.
+
+Ver **B12.1 — Confirmação de resultado da entrega** para autoridade de confirmação, motivo obrigatório em `DELIVERY_FAILED` e relação com o pagamento.
 
 ---
 

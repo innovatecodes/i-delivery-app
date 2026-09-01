@@ -3,6 +3,9 @@ using IDelivery.Domain.Tenants.Entities;
 using IDelivery.Domain.Users.Entities;
 using IDelivery.Domain.Catalog.Entities;
 using IDelivery.Domain.Carts.Entities;
+using IDelivery.Domain.Customers.Entities;
+using IDelivery.Domain.Delivery.Entities;
+using IDelivery.Domain.Orders.Entities;
 using IDelivery.Domain.Common.Entities;
 
 namespace IDelivery.Infrastructure.Persistence.Context;
@@ -19,6 +22,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<CustomerAddress> CustomerAddresses => Set<CustomerAddress>();
+    public DbSet<DeliverySettings> DeliverySettings => Set<DeliverySettings>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
