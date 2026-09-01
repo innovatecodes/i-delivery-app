@@ -8,6 +8,7 @@ COPY ["apps/server/src/IDelivery.Api/IDelivery.Api.csproj", "apps/server/src/IDe
 COPY ["apps/server/src/IDelivery.Application/IDelivery.Application.csproj", "apps/server/src/IDelivery.Application/"]
 COPY ["apps/server/src/IDelivery.Domain/IDelivery.Domain.csproj", "apps/server/src/IDelivery.Domain/"]
 COPY ["apps/server/src/IDelivery.Infrastructure/IDelivery.Infrastructure.csproj", "apps/server/src/IDelivery.Infrastructure/"]
+COPY ["apps/server/src/IDelivery.SharedKernel/IDelivery.SharedKernel.csproj", "apps/server/src/IDelivery.SharedKernel/"]
 RUN dotnet restore "apps/server/src/IDelivery.Api/IDelivery.Api.csproj"
 
 COPY . .

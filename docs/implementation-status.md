@@ -1,7 +1,7 @@
 # Implementation Status
 
 ## Última análise
-Data: 2026-08-31
+Data: 2026-09-01 (atualizado)
 
 ## Backend
 | Etapa | Status | Evidências | Próxima ação |
@@ -12,7 +12,7 @@ Data: 2026-08-31
 | B04 — Tenant | CONCLUÍDA | Domain: Tenant aggregate, TenantStatus, Address VO, 4 domain events. Application: Create/Activate/Block/Delete/Update commands + validators + handlers, GetTenant/GetTenants queries. Infrastructure: TenantConfiguration, TenantRepository, Migration InitialCreate. Tests: 7 unit + 5 integration (todos passando). | — |
 | B05 — Roles e Users | CONCLUÍDA | Domain: User aggregate, Role enum (SuperAdmin, TenantAdmin, Delivery, Customer), UserStatus, 8 domain events, RoleExtensions. Application: IUserRepository interface. Infrastructure: UserRepository, UserConfiguration, Migration AddUserEntity. Tests: 3 unit (UserTests). | Adicionar comandos/queries de User (CreateUser, GetUser, etc.) quando necessário |
 | B06 — Autenticação | CONCLUÍDA | Abstractions: IJwtTokenService, IEmailService, ICurrentUser. Implementation: JwtTokenService (JWT access/refresh tokens), EmailService (SMTP/console), CurrentUserService. Commands: Register, Login, RefreshToken, ActivateAccount, ForgotPassword, ResetPassword + validators + handlers. Domain Event Handler: UserRegisteredDomainEventHandler → send activation email. Infrastructure: JWT middleware, AuthController endpoints, HttpContextAccessor. Tests: existing tests pass. | — |
-| B07 — Multi-tenancy | NÃO IMPLEMENTADA | Nenhum middleware, context resolver, tenant isolation | TenantContext, middleware, isolamento |
+| B07 — Multi-tenancy | CONCLUÍDA | ICurrentUser.TenantId, CurrentUserService extrai tenant_id do JWT, ITenantContext, TenantContext, JwtTokenService inclui tenant_id no token, User.TenantId | — |
 | B08 — Catálogo | NÃO IMPLEMENTADA | — | — |
 | B09 — Carrinho | NÃO IMPLEMENTADA | — | — |
 | B10 — Customer e endereço | NÃO IMPLEMENTADA | Address VO existe em Tenant | — |
@@ -34,7 +34,7 @@ Data: 2026-08-31
 
 ## Bloqueios
 - B06 Autenticação → **RESOLVIDO**
-- B06 bloqueia B07 Multi-tenancy (precisa de usuário autenticado para obter tenant context)
+- B06 bloqueia B07 Multi-tenancy (precisa de usuário autenticado para obter tenant context) → **RESOLVIDO**
 - B05 Users (IUserRepository) → **RESOLVIDO**: UserRepository implementado
 - B04 Tenant → **RESOLVIDO**: Todos os testes passando
 
@@ -47,16 +47,17 @@ Data: 2026-08-31
 6. ~~**IUserRepository** não implementado em Infrastructure~~ → **CORRIGIDO** (UserRepository implementado)
 7. **Authentication/Email/ExternalServices** pastas em Infrastructure existem mas vazias → **PARCIALMENTE RESOLVIDO** (Email e Security implementados)
 8. **Sem controllers/endpoints** na API — apenas health check → **RESOLVIDO** (AuthController adicionado)
+9. ~~**Dockerfile** não copia `IDelivery.SharedKernel.csproj`~~ → **CORRIGIDO** (COPY adicionado antes do restore)
 
 ## Testes
 - Backend build: OK (com warnings de versão EF Core Relational 9.0.1 vs 9.0.19 no IntegrationTests)
 - Backend tests: **19 passed, 0 failed** (14 unit + 5 integration)
 
 ## Próxima etapa recomendada
-**B07 Multi-tenancy** - Implementar:
-1. TenantContext service (resolver tenant do JWT claims ou header)
-2. Middleware de isolamento multi-tenant
-3. ITenantContext abstraction
-4. Atualizar ICurrentUser para incluir tenant context
+**B08 — Catálogo** - Implementar:
+1. Product e Category aggregates
+2. Commands e Queries para CRUD
+3. Persistência com EF Core
+4. Testes unitários e de integração
 
-Dependências resolvidas: JWT authentication, ICurrentUser, UserRepository.
+Dependências resolvidas: B04 Tenant, B05 Users, B06 Auth, B07 Multi-tenancy.

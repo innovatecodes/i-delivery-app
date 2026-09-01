@@ -15,7 +15,7 @@ O objetivo é construir o iDelivery, mas antes de implementar qualquer coisa o a
 7. quais etapas podem ser consideradas concluídas;
 8. quais dependências ainda faltam.
 
-**Regra central: NÃO implementar algo simplesmente porque está descrito como "próxima etapa". Primeiro inspecionar o estado atual.**
+> **Regra central: NÃO implementar algo simplesmente porque está descrito como "próxima etapa". Primeiro inspecionar o estado atual.**
 
 ---
 
@@ -23,28 +23,24 @@ O objetivo é construir o iDelivery, mas antes de implementar qualquer coisa o a
 
 Antes de criar, editar, mover ou excluir qualquer arquivo, o agente deve executar uma fase de descoberta.
 
----
-
 ## Regra Crítica de Ambiente e Terminal (Windows / PowerShell)
 
-O ambiente de execução padrão é o **Windows (PowerShell)**. O agente DEVE seguir estritamente estas regras:
+O ambiente de execução padrão é o **Windows (PowerShell)**.
 
-1. **Proibido usar `&&`**: O PowerShell nativo não aceita `&&`. Utilize ponto e vírgula (`;`) ou comandos separados.
-2. **Proibido usar heredoc Unix (`cat << 'EOF'`)**: Não utilize comandos `cat` com `EOF`. 
-3. **Proibido usar pastas temporárias do Linux (`/tmp/`)**: Não existem caminhos como `/tmp/` no Windows.
-4. **Proibido poluir a raiz do projeto**: NUNCA crie arquivos soltos de testes, rascunhos ou scripts (ex: `test_*.cs`) na raiz do repositório.
-5. **Execução de testes**: Qualquer teste ou script de validação deve ser executado exclusivamente dentro da pasta de testes correta (`tests/`), utilizando a sintaxe padrão do `dotnet test`.
+1. **Proibido usar `&&`**. Utilize ponto e vírgula (`;`) ou comandos separados.
+2. **Proibido usar heredoc Unix (`cat << 'EOF'`)**.
+3. **Proibido usar pastas temporárias do Linux (`/tmp/`)**.
+4. **Proibido poluir a raiz do projeto** com testes, rascunhos ou scripts.
+5. **Testes** devem ser executados dentro da pasta de testes correta (`tests/`), utilizando `dotnet test`.
 
----
-
-### 1.1 Inspeção obrigatória
+## 1.1 Inspeção obrigatória
 
 Inspecionar, conforme disponível:
 
 - árvore do repositório;
 - `README.md`;
 - `docs/`;
-- arquivos de planejamento existentes;
+- arquivos de planejamento;
 - `.gitignore`;
 - `docker-compose.yml`;
 - Dockerfiles;
@@ -55,7 +51,7 @@ Inspecionar, conforme disponível:
 - `appsettings*.json`;
 - migrations;
 - testes;
-- configurações de EF Core;
+- configurações EF Core;
 - Commands, Queries, Handlers e Validators;
 - entidades, aggregates e Value Objects;
 - Domain Events;
@@ -63,14 +59,14 @@ Inspecionar, conforme disponível:
 - repositories;
 - DbContext;
 - controllers/endpoints;
-- frontend existente;
+- frontend;
 - arquivos de configuração;
 - scripts;
 - histórico Git quando necessário.
 
 Não assumir nomes de pastas ou projetos. Descobrir primeiro.
 
-### 1.2 Verificação de build e testes
+## 1.2 Verificação de build e testes
 
 Antes de modificar código, executar, quando aplicável:
 
@@ -83,43 +79,42 @@ Antes de modificar código, executar, quando aplicável:
 
 Se algo falhar, registrar como **estado atual**. Não corrigir automaticamente durante a descoberta.
 
-### 1.3 Classificação
+## 1.3 Classificação
 
-Cada capacidade do plano deve ser classificada como:
+Cada capacidade deve ser classificada como:
 
-- `CONCLUÍDA` — existe e atende aos critérios;
-- `PARCIAL` — existe, mas falta parte do requisito;
-- `IMPLEMENTADA_COM_PROBLEMAS` — existe, porém viola arquitetura, segurança, testes ou requisitos;
-- `NÃO IMPLEMENTADA` — não existe;
-- `NÃO APLICÁVEL` — não faz sentido no estado/decisão atual;
-- `BLOQUEADA` — depende de outra capacidade ainda não concluída.
+- `CONCLUÍDA`
+- `PARCIAL`
+- `IMPLEMENTADA_COM_PROBLEMAS`
+- `NÃO IMPLEMENTADA`
+- `NÃO APLICÁVEL`
+- `BLOQUEADA`
 
-### 1.4 Evidência obrigatória
+## 1.4 Evidência obrigatória
 
-O agente não pode marcar uma etapa como concluída por inferência superficial.
+Para cada conclusão, apontar evidências:
 
-Para cada conclusão, apontar evidências, por exemplo:
-
-- arquivos relevantes;
-- classes/records/interfaces existentes;
+- arquivos;
+- classes/records/interfaces;
 - endpoints;
 - testes;
 - migrations;
 - configuração;
-- comportamento observado em testes/build.
+- comportamento observado.
 
 Exemplo:
 
 ```text
 Etapa 08 — Usuário
+
 Status: PARCIAL
 
 Evidências:
-- apps/server/src/.../User.cs existe
+- User.cs existe
 - PasswordHash é nullable
 - existe IUserRepository
 - não existe teste de criação de usuário
-- ativação ainda não está coberta pelo fluxo de cadastro
+- ativação ainda não está coberta
 
 Conclusão:
 A etapa não deve ser recriada do zero.
@@ -170,42 +165,71 @@ Data:
 ...
 ```
 
-O agente deve atualizar esse arquivo depois de cada etapa concluída.
+Atualizar depois de cada etapa concluída.
 
 ---
 
 # 3. RECONCILIAÇÃO COM O PLANO
 
-O plano antigo era linear. Este plano é **state-aware**.
-
-A ordem abaixo representa dependências arquiteturais, não autorização automática para executar tudo.
-
 Antes de iniciar uma etapa:
 
 1. consultar `docs/implementation-status.md`;
-2. verificar novamente o código relacionado;
+2. verificar novamente o código;
 3. confirmar se a etapa ainda é necessária;
 4. verificar dependências;
-5. identificar código existente que deve ser reutilizado;
-6. definir o menor conjunto de alterações necessário.
+5. identificar código reutilizável;
+6. definir o menor conjunto de alterações.
 
-### Regra anti-duplicação
+## 3.1 Regra anti-duplicação
 
 Se algo já existe:
 
 - não recriar;
 - não duplicar;
 - não substituir sem necessidade;
-- não criar uma segunda abstração equivalente;
-- não criar nova entidade se a existente atende ao requisito.
+- não criar segunda abstração equivalente;
+- não criar nova entidade se a existente atende.
 
 Primeiro avaliar se o código atual pode ser completado/refatorado.
+
+## 3.2 Capacidade não significa necessariamente endpoint HTTP
+
+Uma capacidade do plano representa uma **capacidade arquitetural/funcional**, e não necessariamente uma API HTTP completa.
+
+Por exemplo, B04 — Tenant pode estar `CONCLUÍDA` quando:
+
+- o agregado Tenant está correto;
+- casos de uso estão implementados;
+- persistência está implementada;
+- regras de negócio estão implementadas;
+- testes relevantes existem;
+- build passa;
+- arquitetura está correta.
+
+A ausência de um `TenantController` **não torna automaticamente B04 incompleta**.
+
+A exposição HTTP dessas capacidades pertence à camada API e deve ser avaliada principalmente em:
+
+```text
+B19 — API e qualidade
+```
+
+Exemplo:
+
+```text
+B04 — Tenant
+├── Domain              concluído
+├── Application         concluído
+├── Infrastructure      concluído
+├── Tests               concluído
+└── HTTP API            pode ser tratada em B19
+```
 
 ---
 
 # 4. FLUXO OBRIGATÓRIO DO AGENTE
 
-Para **cada etapa selecionada**, executar exatamente:
+Para cada etapa selecionada:
 
 ```text
 DISCOVER
@@ -253,8 +277,6 @@ Pesquisar por:
 
 Exemplos:
 
-Se precisar de `Tenant`, procurar:
-
 ```text
 Tenant
 ITenantRepository
@@ -262,8 +284,6 @@ CreateTenant
 TenantConfiguration
 TenantId
 ```
-
-Se precisar de autenticação, procurar:
 
 ```text
 Jwt
@@ -276,8 +296,6 @@ Login
 Register
 ```
 
-Se precisar de CQRS, procurar:
-
 ```text
 ICommand
 IQuery
@@ -287,40 +305,35 @@ Dispatcher
 Handler
 ```
 
-Se já houver uma implementação equivalente, avaliá-la antes de criar outra.
+Se já houver implementação equivalente, avaliá-la antes de criar outra.
 
 ---
 
 # 6. CRITÉRIOS DE DECISÃO
 
-Quando encontrar código existente:
-
 ### Caso A — Está correto
+
 Marcar como `CONCLUÍDA`.
 
-Não alterar sem necessidade.
-
 ### Caso B — Está incompleto
-Marcar como `PARCIAL`.
 
-Implementar somente o que falta.
+Marcar como `PARCIAL` e implementar somente o que falta.
 
 ### Caso C — Está funcional, mas viola princípios
-Marcar como `IMPLEMENTADA_COM_PROBLEMAS`.
 
-Corrigir somente se o problema for relevante para a etapa atual ou bloquear etapas seguintes.
+Marcar como `IMPLEMENTADA_COM_PROBLEMAS`. Corrigir somente se relevante para a etapa atual ou se bloquear etapas seguintes.
 
 ### Caso D — Está duplicado
-Escolher uma implementação canônica, remover/refatorar a duplicidade com cautela e testar.
+
+Escolher implementação canônica, remover/refatorar duplicidade com cautela e testar.
 
 ### Caso E — Não é possível concluir
-Marcar como `BLOQUEADA` e explicar exatamente a dependência.
+
+Marcar como `BLOQUEADA` e explicar a dependência.
 
 ---
 
 # 7. FLUXO FUNCIONAL QUE O AGENTE DEVE ENTENDER
-
-O agente deve compreender o produto antes de implementar partes isoladas.
 
 ## 7.1 SaaS
 
@@ -436,9 +449,8 @@ Bloquear/desbloquear
 
 # 8. PLANO DE CAPACIDADES
 
-O agente deve reconciliar o estado atual com estas capacidades.
-
 ## B01 — Monorepo e infraestrutura
+
 - apps/client
 - apps/server
 - docs
@@ -446,6 +458,7 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - configuração inicial
 
 ## B02 — Fundação .NET
+
 - solution
 - projetos
 - referências
@@ -454,6 +467,7 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - configuração
 
 ## B03 — Shared Kernel
+
 - Entity
 - AggregateRoot
 - ValueObject quando necessário
@@ -463,6 +477,7 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - dispatcher próprio
 
 ## B04 — Tenant
+
 - agregado Tenant
 - identidade
 - status
@@ -471,7 +486,26 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - EF Core
 - PostgreSQL
 
+**Importante:** B04 avalia a capacidade Tenant no domínio, aplicação e infraestrutura. A ausência de Controller HTTP não impede automaticamente B04 de ser concluída.
+
+Se Commands/Queries já existirem, devem ser reutilizados posteriormente pela API.
+
+Exemplos:
+
+```text
+CreateTenantCommand
+GetTenantQuery
+GetTenantsQuery
+ActivateTenantCommand
+BlockTenantCommand
+UpdateTenantCommand
+DeleteTenantCommand
+```
+
+Não criar novos Commands/Queries apenas para atender à API se equivalentes já existirem.
+
 ## B05 — Roles e Users
+
 - roles
 - usuário
 - credenciais
@@ -479,6 +513,7 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - status
 
 ## B06 — Autenticação
+
 - Register
 - Login
 - JWT
@@ -488,6 +523,7 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - eventos de registro/ativação
 
 ## B07 — Multi-tenancy
+
 - contexto do tenant
 - isolamento
 - autorização
@@ -495,6 +531,7 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - proteção contra TenantId arbitrário
 
 ## B08 — Catálogo
+
 - categorias
 - produtos
 - CRUD
@@ -503,6 +540,7 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - paginação no banco
 
 ## B09 — Carrinho
+
 - adicionar
 - quantidade
 - remover
@@ -511,6 +549,7 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - validação de tenant/produto
 
 ## B10 — Customer e endereço
+
 - cliente
 - conta
 - perfil
@@ -518,13 +557,16 @@ O agente deve reconciliar o estado atual com estas capacidades.
 - Value Objects quando apropriado
 
 ## B11 — Delivery settings
+
 V1:
+
 - grátis
 - grátis acima de valor
 - taxa fixa
 - taxa por distância
 
 ## B12 — Pedido e checkout
+
 - Order
 - estados
 - transições
@@ -534,11 +576,13 @@ V1:
 - limpeza do carrinho
 
 ## B13 — Pagamento V1
+
 - CASH
 - CARD_ON_DELIVERY
 - abstração extensível
 
 ## B14 — Gestão de pedidos
+
 - tenant gerencia pedidos
 - confirmação
 - preparo
@@ -546,12 +590,14 @@ V1:
 - cancelamento
 
 ## B15 — Delivery
+
 - entregadores
 - associação ao tenant
 - atribuição
 - fluxo de entrega
 
 ## B16 — Rastreamento
+
 - geolocalização
 - localização do entregador
 - rota
@@ -560,6 +606,7 @@ V1:
 - abstração de mapas/geolocalização
 
 ## B17 — SaaS
+
 - Super Admin
 - gestão de tenants
 - planos
@@ -570,6 +617,7 @@ V1:
 - ciclo de assinatura
 
 ## B18 — Notificações
+
 - Domain Events
 - notificações internas
 - realtime
@@ -577,15 +625,130 @@ V1:
 - consulta
 - lidas/não lidas
 
+O agente deve avaliar cada requisito individualmente. Uma implementação parcial de e-mail não significa automaticamente que B18 está concluída.
+
 ## B19 — API e qualidade
+
 - OpenAPI
 - erros
 - autenticação
+- autorização
+- controllers/endpoints
 - paginação
-- testes
-- revisão arquitetural
+- testes de API
+- contratos HTTP
+- integração dos Commands/Queries existentes com a API
+
+### Regra importante
+
+B19 é responsável pela **exposição HTTP das capacidades que precisam ser consumidas pela API**.
+
+Não assumir que cada entidade ou Aggregate exige um Controller próprio.
+
+Antes de criar Controllers:
+
+1. descobrir endpoints existentes;
+2. descobrir Commands e Queries existentes;
+3. mapear casos de uso que precisam ser expostos;
+4. verificar se já existe Controller equivalente;
+5. reutilizar Commands/Queries existentes;
+6. criar somente endpoints necessários;
+7. manter Controllers finos;
+8. criar testes de integração da API;
+9. revisar autenticação e multi-tenancy.
+
+Exemplo:
+
+```text
+HTTP
+ ↓
+TenantController
+ ↓
+CreateTenantCommand
+ ↓
+CreateTenantCommandHandler
+```
+
+ou:
+
+```text
+HTTP
+ ↓
+TenantController
+ ↓
+GetTenantQuery
+ ↓
+GetTenantQueryHandler
+```
+
+A existência de uma entidade ou Aggregate não implica automaticamente a criação de um Controller.
+
+Não utilizar:
+
+```text
+Entity → Controller
+```
+
+nem:
+
+```text
+Aggregate → Controller
+```
+
+A regra correta é:
+
+```text
+Caso de uso necessário pela API
+        ↓
+Command/Query
+        ↓
+Endpoint HTTP
+        ↓
+Controller quando apropriado
+```
+
+A granularidade dos Controllers deve ser definida pelos recursos e casos de uso HTTP, e não simplesmente pela estrutura do Domain.
+
+### Exemplo de organização
+
+```text
+Controllers/
+├── AuthController.cs
+├── TenantsController.cs
+├── ProductsController.cs
+├── CategoriesController.cs
+├── OrdersController.cs
+└── DeliveriesController.cs
+```
+
+Esta árvore é apenas ilustrativa. Não criar esses Controllers automaticamente.
+
+### Mapeamento de API
+
+Antes de considerar B19 concluída, o agente deve possuir um mapeamento dos contratos reais, por exemplo:
+
+```text
+Recurso       Endpoint                  Operação
+---------------------------------------------------------------
+Auth          POST /api/auth/login      LoginCommand
+Auth          POST /api/auth/register   RegisterCommand
+
+Tenant        POST /api/tenants         CreateTenantCommand
+Tenant        GET /api/tenants/{id}     GetTenantQuery
+
+Product       POST /api/products        CreateProductCommand
+Product       GET /api/products         GetProductsQuery
+
+Order         POST /api/orders          CreateOrderCommand
+Order         GET /api/orders/{id}      GetOrderQuery
+```
+
+Os exemplos acima são ilustrativos. Não criar endpoints automaticamente.
+
+---
 
 ## F01 — Angular bootstrap
+
 - Angular 20
 - standalone
 - TypeScript
@@ -597,6 +760,7 @@ V1:
 - estrutura por features
 
 ## F02 — Design System
+
 - Button
 - Input
 - Select
@@ -612,6 +776,7 @@ V1:
 - Confirm Dialog
 
 ## F03 — Frontend Auth
+
 - login
 - cadastro
 - recuperação quando API existir
@@ -621,6 +786,7 @@ V1:
 - user state
 
 ## F04 — Área pública SaaS
+
 - landing
 - benefícios
 - planos
@@ -629,6 +795,7 @@ V1:
 - CTA
 
 ## F05 — Catálogo
+
 - categorias
 - produtos
 - busca
@@ -637,6 +804,7 @@ V1:
 - detalhes
 
 ## F06 — Carrinho e checkout
+
 - carrinho
 - identificação
 - endereço
@@ -646,18 +814,21 @@ V1:
 - criação do pedido
 
 ## F07 — Cliente
+
 - perfil
 - endereços
 - pedidos
 - detalhes
 
 ## F08 — Tenant
+
 - dashboard
 - produtos
 - categorias
 - pedidos
 
 ## F09 — Delivery
+
 - dashboard
 - entregas
 - status
@@ -665,17 +836,20 @@ V1:
 - mapa/rastreamento
 
 ## F10 — Super Admin
+
 - tenants
 - planos
 - assinaturas
 
 ## F11 — Realtime/Notifications
+
 - SignalR ou tecnologia adequada
 - central de notificações
 - badges
 - toasts
 
 ## F12 — Push/PWA
+
 - Web Push
 - service worker
 - manifest
@@ -683,6 +857,7 @@ V1:
 - instalação
 
 ## F13 — Qualidade frontend
+
 - mobile first
 - responsividade
 - acessibilidade
@@ -712,7 +887,7 @@ V1:
 - Dependency Inversion
 - isolamento multi-tenant
 
-### CQRS
+## CQRS
 
 Commands e Queries são explícitos.
 
@@ -724,11 +899,110 @@ Não utilizar MediatR ou outra biblioteca de Mediator.
 
 ---
 
-# 10. UM ARQUIVO POR TIPO
+# 10. API, CONTROLLERS E ENDPOINTS
+
+A API pertence à camada de apresentação.
+
+Sua responsabilidade é adaptar HTTP para os casos de uso da Application.
+
+```text
+HTTP Request
+    ↓
+Controller
+    ↓
+Command / Query
+    ↓
+Dispatcher
+    ↓
+Handler
+    ↓
+Domain / Application
+    ↓
+Repository / Infrastructure
+    ↓
+Database
+```
+
+## Controllers podem
+
+- receber requisições HTTP;
+- realizar model binding;
+- receber parâmetros de rota/query/body;
+- obter informações do usuário autenticado;
+- obter contexto do tenant;
+- encaminhar Commands/Queries;
+- mapear resultados para respostas HTTP;
+- retornar status codes apropriados.
+
+## Controllers não podem
+
+- conter regras de negócio;
+- acessar diretamente `DbContext`;
+- acessar diretamente repositories para executar casos de uso;
+- criar entidades de domínio;
+- calcular preços;
+- calcular taxas;
+- decidir regras de pedido;
+- controlar transições de estado;
+- implementar regras de autorização de negócio;
+- confiar em `TenantId` enviado arbitrariamente pelo cliente;
+- duplicar lógica dos Handlers.
+
+## 10.1 Um recurso não implica um Controller obrigatório
+
+Não utilizar:
+
+```text
+Entity → Controller
+```
+
+nem:
+
+```text
+Aggregate → Controller
+```
+
+A regra correta é:
+
+```text
+Caso de uso necessário pela API
+        ↓
+Command/Query
+        ↓
+Endpoint HTTP
+        ↓
+Controller quando apropriado
+```
+
+## 10.2 Regra de reutilização
+
+Se existir:
+
+```text
+CreateTenantCommand
+CreateTenantCommandHandler
+```
+
+não criar serviços paralelos apenas para atender o Controller.
+
+O Controller deve utilizar o caso de uso existente.
+
+---
+
+# 11. UM ARQUIVO POR TIPO
 
 Regra obrigatória em todo backend C#.
 
-Cada `.cs` deve conter apenas um `class`, `interface`, `record`, `enum`, `struct` ou `abstract class` público/internal.
+Cada `.cs` deve conter apenas um:
+
+- `class`;
+- `interface`;
+- `record`;
+- `enum`;
+- `struct`;
+- `abstract class`;
+
+público/internal.
 
 O arquivo deve possuir o mesmo nome do tipo.
 
@@ -749,15 +1023,13 @@ Antes de concluir qualquer etapa:
 1. verificar arquivos `.cs` criados/alterados;
 2. detectar múltiplos tipos;
 3. separar quando necessário;
-4. somente depois executar build/testes finais.
+4. executar build/testes finais.
 
 Não colocar comentários de cabeçalho antes de `using`, `namespace` ou declaração de tipo.
 
 ---
 
-# 11. SEGURANÇA E IDENTIDADE
-
-Credenciais e tokens devem respeitar responsabilidades:
+# 12. SEGURANÇA E IDENTIDADE
 
 - domínio não conhece infraestrutura de hashing;
 - hashing de senha deve ser responsabilidade de abstração apropriada;
@@ -772,7 +1044,7 @@ Não criar hashes temporários apenas para satisfazer persistência quando o flu
 
 ---
 
-# 12. DOMAIN EVENTS E E-MAIL
+# 13. DOMAIN EVENTS E E-MAIL
 
 Registro:
 
@@ -812,7 +1084,7 @@ Não duplicar esse mecanismo para Tenant Admin/Super Admin criados por outro usu
 
 ---
 
-# 13. PEDIDO — REGRAS IMPORTANTES
+# 14. PEDIDO — REGRAS IMPORTANTES
 
 O pedido deve possuir snapshot dos itens:
 
@@ -841,7 +1113,7 @@ Com cancelamento somente nas transições permitidas.
 
 ---
 
-# 14. DELIVERY E TAXA
+# 15. DELIVERY E TAXA
 
 V1 deve suportar:
 
@@ -876,7 +1148,7 @@ O domínio não deve depender diretamente de Google Maps, Mapbox ou outro proved
 
 ---
 
-# 15. FRONTEND — REGRA DE CONTRATO
+# 16. FRONTEND — REGRA DE CONTRATO
 
 O Angular consome a API.
 
@@ -888,6 +1160,7 @@ Frontend pode conter:
 - estado visual;
 - UX;
 - guards;
+- interceptors;
 - transformação de apresentação.
 
 Backend continua sendo autoridade para:
@@ -903,7 +1176,7 @@ Backend continua sendo autoridade para:
 
 ---
 
-# 16. TESTES
+# 17. TESTES
 
 O agente deve identificar testes existentes antes de criar novos.
 
@@ -929,16 +1202,17 @@ Principais áreas:
 - Delivery
 - Subscription
 - Notifications
+- API
 
 ---
 
-# 17. GIT
+# 18. GIT
 
 Não executar `git commit` automaticamente.
 
-- **Importante:** Sempre execute `git add .` (ou adicione explicitamente todos os arquivos modificados e criados) antes de sugerir ou realizar qualquer commit, garantindo que nenhum arquivo novo ou alterado fique de fora.
+**Importante:** sempre execute `git add .` ou adicione explicitamente todos os arquivos modificados e criados antes de sugerir ou realizar qualquer commit.
 
-O agente deve sugerir um commit pequeno e semanticamente relacionado em **Português do Brasil (PT-BR)**, seguindo o padrão imperativo (ex: *adiciona*, *corrige*).
+O agente deve sugerir um commit pequeno e semanticamente relacionado em **Português do Brasil (PT-BR)**, seguindo o padrão imperativo.
 
 Conventional Commits:
 
@@ -950,7 +1224,7 @@ test:
 docs:
 chore:
 build:
-ci
+ci:
 ```
 
 Não misturar várias capacidades independentes em um único commit.
@@ -959,7 +1233,7 @@ Não alterar histórico Git sem autorização explícita.
 
 ---
 
-# 18. CHECKLIST ANTES DE IMPLEMENTAR UMA ETAPA
+# 19. CHECKLIST ANTES DE IMPLEMENTAR UMA ETAPA
 
 ```text
 [ ] Li o implementation-status.md
@@ -971,11 +1245,14 @@ Não alterar histórico Git sem autorização explícita.
 [ ] Defini o menor escopo necessário
 [ ] Não estou recriando funcionalidade existente
 [ ] Não estou antecipando etapa futura
+[ ] Verifiquei se a capacidade exige exposição HTTP
+[ ] Verifiquei se já existem Commands/Queries reutilizáveis
+[ ] Verifiquei se já existe Controller/endpoint equivalente
 ```
 
 ---
 
-# 19. CHECKLIST ANTES DE CONCLUIR UMA ETAPA
+# 20. CHECKLIST ANTES DE CONCLUIR UMA ETAPA
 
 ```text
 [ ] Implementação limitada ao escopo
@@ -988,13 +1265,14 @@ Não alterar histórico Git sem autorização explícita.
 [ ] Arquitetura revisada
 [ ] Multi-tenancy revisado quando aplicável
 [ ] Segurança revisada quando aplicável
+[ ] API/Controllers revisados quando aplicável
 [ ] implementation-status.md atualizado
 [ ] Commit sugerido
 ```
 
 ---
 
-# 20. REGRA DE PARADA
+# 21. REGRA DE PARADA
 
 Ao concluir uma etapa, o agente DEVE PARAR.
 
@@ -1004,25 +1282,32 @@ Resposta obrigatória:
 Etapa analisada/concluída: <nome>
 
 Status antes da alteração:
+
 <CONCLUÍDA/PARCIAL/IMPLEMENTADA_COM_PROBLEMAS/NÃO IMPLEMENTADA>
 
 O que já existia:
+
 - ...
 
 O que foi implementado nesta etapa:
+
 - ...
 
 O que não foi alterado:
+
 - ...
 
 Testes:
+
 - Build: OK/FALHOU/NÃO APLICÁVEL
 - Testes: OK/FALHOU/NÃO APLICÁVEL
 
 Status atualizado:
+
 - ...
 
 Commit sugerido:
+
 <commit>
 
 A etapa foi concluída.
@@ -1030,8 +1315,11 @@ A etapa foi concluída.
 O que deseja fazer agora?
 
 0. Deseja seguir para a próxima etapa?
+
 1. Deseja realizar o commit sugerido?
+
 2. Deseja verificar/revisar o que foi implementado antes de continuar?
+
 3. Deseja apontar algum ajuste, ponto específico ou bug no código atual antes de prosseguir?
 
 Informe a opção para confirmar sua decisão no formato:
@@ -1041,13 +1329,13 @@ Informe a opção para confirmar sua decisão no formato:
 AGUARDANDO RESPOSTA DO USUÁRIO.
 ```
 
-Mesmo que a etapa seja considerada `CONCLUÍDA` sem alteração, o agente deve parar e informar isso.
+Mesmo que a etapa seja considerada `CONCLUÍDA` sem alteração, o agente deve parar.
 
 **Nunca avançar automaticamente.**
 
 ---
 
-# 21. REGRA PARA ETAPA JÁ CONCLUÍDA
+# 22. REGRA PARA ETAPA JÁ CONCLUÍDA
 
 Se o agente descobrir que uma etapa já está completamente implementada:
 
@@ -1067,12 +1355,16 @@ Etapa B04 — Tenant
 Status: CONCLUÍDA
 
 A implementação já existente atende aos requisitos desta etapa.
+
 Nenhum código foi recriado.
+
+A existência ou ausência de Controller HTTP será avaliada
+separadamente na capacidade B19 — API e qualidade.
 ```
 
 ---
 
-# 22. REGRA PARA IMPLEMENTAÇÃO PARCIAL
+# 23. REGRA PARA IMPLEMENTAÇÃO PARCIAL
 
 Se estiver parcialmente implementada:
 
@@ -1099,7 +1391,7 @@ Não começar novamente do zero.
 
 ---
 
-# 23. REGRA PARA CONFLITOS COM O CÓDIGO ATUAL
+# 24. REGRA PARA CONFLITOS COM O CÓDIGO ATUAL
 
 Se o código atual divergir deste plano:
 
@@ -1110,31 +1402,6 @@ Se o código atual divergir deste plano:
 5. preferir a solução mais simples e arquiteturalmente consistente;
 6. documentar a decisão em `implementation-status.md`;
 7. somente refatorar o necessário.
-
----
-
-# 24. NÃO FAZER
-
-- Não executar várias etapas simultaneamente.
-- Não implementar frontend antes do backend estar pronto para os contratos necessários.
-- Não criar arquivos fictícios.
-- Não criar classes vazias apenas para reproduzir árvore.
-- Não criar abstrações sem necessidade.
-- Não criar entidades antecipadamente.
-- Não duplicar entidades.
-- Não duplicar Commands/Queries.
-- Não duplicar Services.
-- Não duplicar eventos.
-- Não criar God Service.
-- Não colocar regra de negócio em Controller.
-- Não colocar regra de negócio no DbContext.
-- Não confiar em TenantId vindo do cliente.
-- Não usar MediatR.
-- Não agrupar tipos públicos/internal no mesmo `.cs`.
-- Não fazer grandes refatorações fora do escopo.
-- Não alterar código concluído sem justificativa.
-- Não fazer commit sem autorização.
-- Não avançar automaticamente.
 
 ---
 
@@ -1152,15 +1419,19 @@ Formato:
 ## ADR-XXX — <título>
 
 ### Contexto
+
 ...
 
 ### Decisão
+
 ...
 
 ### Motivo
+
 ...
 
 ### Impacto
+
 ...
 ```
 
@@ -1173,7 +1444,7 @@ Não criar ADR para decisões triviais.
 Uma capacidade só pode ser `CONCLUÍDA` quando:
 
 1. requisito implementado;
-2. integração com o código existente correta;
+2. integração com código existente correta;
 3. regras de negócio respeitadas;
 4. testes relevantes existentes;
 5. build passa;
@@ -1181,7 +1452,31 @@ Uma capacidade só pode ser `CONCLUÍDA` quando:
 7. segurança adequada quando aplicável;
 8. documentação/status atualizado.
 
-"Existe um arquivo com esse nome" NÃO significa concluído.
+**"Existe um arquivo com esse nome" NÃO significa concluído.**
+
+Da mesma forma:
+
+**"Existe um Controller com esse nome" NÃO significa que a API está concluída.**
+
+O agente deve verificar o fluxo completo quando aplicável:
+
+```text
+Endpoint
+  ↓
+Controller
+  ↓
+Command/Query
+  ↓
+Dispatcher
+  ↓
+Handler
+  ↓
+Domain
+  ↓
+Infrastructure
+  ↓
+Database
+```
 
 ---
 
@@ -1213,6 +1508,7 @@ A primeira resposta operacional deve ser:
 INICIANDO DISCOVERY DO REPOSITÓRIO.
 
 Vou:
+
 1. Inspecionar a estrutura atual.
 2. Identificar backend/frontend.
 3. Mapear arquitetura e dependências.
@@ -1234,8 +1530,6 @@ Ao terminar o Discovery, PARAR e aguardar autorização para implementar.
 # 29. RESULTADO ESPERADO
 
 O agente deve funcionar como um **engenheiro entrando em um projeto existente**, e não como um gerador que assume um repositório vazio.
-
-O comportamento esperado é:
 
 ```text
 PLANO
@@ -1264,5 +1558,106 @@ AUTORIZAÇÃO DO USUÁRIO
 A principal regra é:
 
 > **O código existente é a fonte de verdade sobre o que já foi implementado. O plano é a fonte de verdade sobre o que ainda precisa ser alcançado. O agente deve reconciliar os dois antes de agir.**
+
+---
+
+# 30. REGRA FINAL SOBRE DOMÍNIO, APPLICATION E API
+
+Para evitar interpretações incorretas sobre o estado das capacidades, o agente deve distinguir claramente:
+
+## DOMAIN
+
+Responsabilidade:
+
+- entidades;
+- aggregates;
+- Value Objects;
+- regras de negócio;
+- Domain Events.
+
+## APPLICATION
+
+Responsabilidade:
+
+- Commands;
+- Queries;
+- Handlers;
+- Validators;
+- orquestração dos casos de uso;
+- abstrações necessárias.
+
+## INFRASTRUCTURE
+
+Responsabilidade:
+
+- EF Core;
+- PostgreSQL;
+- repositories;
+- serviços externos;
+- e-mail;
+- JWT;
+- implementações de abstrações.
+
+## API
+
+Responsabilidade:
+
+- HTTP;
+- Controllers;
+- autenticação HTTP;
+- autorização HTTP;
+- model binding;
+- respostas HTTP;
+- OpenAPI.
+
+Uma capacidade pode estar concluída em:
+
+```text
+Domain
+Application
+Infrastructure
+Tests
+```
+
+sem necessariamente possuir:
+
+```text
+Controller
+Endpoint HTTP
+```
+
+Quando isso ocorrer, o status da capacidade funcional pode continuar como `CONCLUÍDA`, enquanto a exposição HTTP permanece como trabalho de `B19 — API e qualidade`.
+
+Exemplo:
+
+```text
+B04 — Tenant
+
+Domain          concluído
+Application     concluído
+Infrastructure  concluído
+Tests           concluído
+API             pendente de B19
+```
+
+Isso **não deve ser interpretado como duplicidade ou implementação incompleta de Tenant**.
+
+Quando B19 for executada, o agente deve reutilizar os casos de uso existentes:
+
+```text
+HTTP
+ ↓
+Controller
+ ↓
+Existing Command / Query
+ ↓
+Existing Handler
+ ↓
+Existing Domain Logic
+```
+
+e não recriar a funcionalidade de Tenant na camada API.
+
+---
 
 # FIM

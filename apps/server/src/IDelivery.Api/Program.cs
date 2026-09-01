@@ -16,14 +16,15 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Controllers + Configuração JSON.
+        // Controllers + Configuração JSON
         builder.Services.AddControllers();
 
-        // HttpContextAccessor para ICurrentUser
+        // HttpContextAccessor para ICurrentUser e ITenantContext
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentUser, CurrentUserService>();
+        builder.Services.AddScoped<ITenantContext, TenantContext>();
 
-        // Exception Handler Global - registra o IExceptionHandler.
+        // Exception Handler Global - registra o IExceptionHandler
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
 
@@ -50,13 +51,13 @@ public class Program
 
         builder.Services.AddAuthorization();
 
-        // Camada de Aplicação.
+        // Camada de Aplicação
         builder.Services.AddApplication();
 
-        // Camada de Infraestrutura.
+        // Camada de Infraestrutura
         builder.Services.AddInfrastructure(builder.Configuration);
 
-        // Health Checks.
+        // Health Checks
         builder.Services.AddHealthChecks();
 
         var app = builder.Build();
@@ -65,14 +66,14 @@ public class Program
         // PIPELINE HTTP (Middleware Pipeline)
         // ===================================
 
-        // Exception Handler - deve ser um dos primeiros middlewares.
+        // Exception Handler - deve ser um dos primeiros middlewares
         app.UseExceptionHandler();
 
         // Authentication & Authorization
         app.UseAuthentication();
         app.UseAuthorization();
 
-        // Mapeia o endpoint /health para Health Checks.
+        // Mapeia o endpoint /health para Health Checks
         app.MapHealthChecks("/health");
 
         app.MapControllers();
