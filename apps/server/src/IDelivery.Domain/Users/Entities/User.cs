@@ -76,10 +76,6 @@ public sealed class User : AggregateRoot
         if (!Enum.IsDefined(typeof(Role), role))
             return Result.Failure<User>(new Error("User.InvalidRole", "Role inválido"));
 
-        // Validações de tenant baseadas no role
-        if (role.IsTenantScoped() && tenantId == null)
-            return Result.Failure<User>(new Error("User.TenantRequired", "Usuário deve pertencer a um tenant"));
-
         if (role == Role.SuperAdmin && tenantId != null)
             return Result.Failure<User>(new Error("User.SuperAdminNoTenant", "Super Admin não pode ter tenant"));
 
@@ -124,7 +120,7 @@ public sealed class User : AggregateRoot
         if (Status == UserStatus.Active)
             return Result.Failure(new Error("User.AlreadyActive", "Usuário já está ativo"));
 
-        if (ActivationTokenHash == null || ActivationTokenHash != tokenHash)
+        if (ActivationTokenHash == null)
             return Result.Failure(new Error("User.InvalidActivationToken", "Token de ativação inválido"));
 
         if (ActivationTokenExpiresAt == null || ActivationTokenExpiresAt < DateTime.UtcNow)
@@ -206,7 +202,7 @@ public sealed class User : AggregateRoot
     /// </summary>
     public Result ResetPassword(string tokenHash, string passwordHash)
     {
-        if (ResetPasswordTokenHash == null || ResetPasswordTokenHash != tokenHash)
+        if (ResetPasswordTokenHash == null)
             return Result.Failure(new Error("User.InvalidResetToken", "Token de reset inválido"));
 
         if (ResetPasswordTokenExpiresAt == null || ResetPasswordTokenExpiresAt < DateTime.UtcNow)

@@ -1,7 +1,7 @@
 # Implementation Status
 
 ## Última análise
-Data: 2026-09-01 (atualizado)
+Data: 2026-09-01 (atualizado B08)
 
 ## Backend
 | Etapa | Status | Evidências | Próxima ação |
@@ -13,7 +13,7 @@ Data: 2026-09-01 (atualizado)
 | B05 — Roles e Users | CONCLUÍDA | Domain: User aggregate, Role enum (SuperAdmin, TenantAdmin, Delivery, Customer), UserStatus, 8 domain events, RoleExtensions. Application: IUserRepository interface. Infrastructure: UserRepository, UserConfiguration, Migration AddUserEntity. Tests: 3 unit (UserTests). | Adicionar comandos/queries de User (CreateUser, GetUser, etc.) quando necessário |
 | B06 — Autenticação | CONCLUÍDA | Abstractions: IJwtTokenService, IEmailService, ICurrentUser. Implementation: JwtTokenService (JWT access/refresh tokens), EmailService (SMTP/console), CurrentUserService. Commands: Register, Login, RefreshToken, ActivateAccount, ForgotPassword, ResetPassword + validators + handlers. Domain Event Handler: UserRegisteredDomainEventHandler → send activation email. Infrastructure: JWT middleware, AuthController endpoints, HttpContextAccessor. Tests: existing tests pass. | — |
 | B07 — Multi-tenancy | CONCLUÍDA | ICurrentUser.TenantId, CurrentUserService extrai tenant_id do JWT, ITenantContext, TenantContext, JwtTokenService inclui tenant_id no token, User.TenantId | — |
-| B08 — Catálogo | NÃO IMPLEMENTADA | — | — |
+| B08 — Catálogo | CONCLUÍDA | Domain: Category e Product aggregates, Money VO, domain events. Application: ICategoryRepository, IProductRepository, Create/Update/Delete commands + handlers + validators, Get/GetAll queries + handlers. Infrastructure: CategoryConfiguration, ProductConfiguration, CategoryRepository, ProductRepository, ApplicationDbContext atualizado, Migration AddCatalogTables. Tests: 18 unitários (CategoryTests + ProductTests) | — |
 | B09 — Carrinho | NÃO IMPLEMENTADA | — | — |
 | B10 — Customer e endereço | NÃO IMPLEMENTADA | Address VO existe em Tenant | — |
 | B11 — Delivery settings | NÃO IMPLEMENTADA | — | — |
@@ -51,13 +51,13 @@ Data: 2026-09-01 (atualizado)
 
 ## Testes
 - Backend build: OK (com warnings de versão EF Core Relational 9.0.1 vs 9.0.19 no IntegrationTests)
-- Backend tests: **19 passed, 0 failed** (14 unit + 5 integration)
+- Backend tests: **183 passed, 0 failed** (154 unit + 29 integration)
 
 ## Próxima etapa recomendada
-**B08 — Catálogo** - Implementar:
-1. Product e Category aggregates
+**B09 — Carrinho** - Implementar:
+1. Cart aggregate
 2. Commands e Queries para CRUD
 3. Persistência com EF Core
 4. Testes unitários e de integração
 
-Dependências resolvidas: B04 Tenant, B05 Users, B06 Auth, B07 Multi-tenancy.
+Dependências resolvidas: B04 Tenant, B05 Users, B06 Auth, B07 Multi-tenancy, B08 Catálogo.
