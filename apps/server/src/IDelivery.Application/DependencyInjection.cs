@@ -2,8 +2,10 @@ using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Commands.Auth;
 using IDelivery.Application.Commands.Tenants;
 using IDelivery.Application.Commands.Catalog;
+using IDelivery.Application.Commands.Carts;
 using IDelivery.Application.Queries.Tenants;
 using IDelivery.Application.Queries.Catalog;
+using IDelivery.Application.Queries.Carts;
 using IDelivery.Application.Common.Models;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -127,6 +129,28 @@ public static class DependencyInjection
         services.AddScoped<
             ICommandHandler<GetProductsByCategoryQuery, IReadOnlyList<ProductResponse>>,
             GetProductsByCategoryQueryHandler>();
+
+        // Cart Commands
+        services.AddScoped<
+            ICommandHandler<AddCartItemCommand>,
+            AddCartItemCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<RemoveCartItemCommand>,
+            RemoveCartItemCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<UpdateCartItemQuantityCommand>,
+            UpdateCartItemQuantityCommandHandler>();
+
+        services.AddScoped<
+            ICommandHandler<ClearCartCommand>,
+            ClearCartCommandHandler>();
+
+        // Cart Queries
+        services.AddScoped<
+            IQueryHandler<GetCartQuery, CartResponse>,
+            GetCartQueryHandler>();
     }
 
     private static void RegisterValidators(IServiceCollection services)

@@ -36,6 +36,7 @@ Antes de editar:
 - consulte `implementation-status.md`;
 - pesquise implementação equivalente;
 - confirme o gap;
+- verifique se a mudança planejada impacta o schema (entidade/DbContext) e, se sim, já preveja a necessidade de migration no plano;
 - planeje o menor conjunto de mudanças.
 
 Se já estiver concluído, valide e não recrie.
@@ -47,6 +48,13 @@ Se houver problema arquitetural, corrija somente o necessário.
 ### Regra de Arquitetura e Docker
 - **Backend (`docker/server/Dockerfile`):** Sempre que um novo projeto `.csproj` for adicionado, removido ou renomeado na solução .NET, você **deve** atualizar automaticamente o `Dockerfile` do server, inserindo o `COPY` correspondente antes do comando `dotnet restore`.
 - **Frontend (`docker/client/Dockerfile` - Futuro):** Quando a camada de frontend for implementada, crie e mantenha o `Dockerfile` correspondente (seguindo o padrão de copiar os arquivos de dependência — ex: `package.json` — antes de rodar o comando de instalação/build para otimizar o cache).
+
+### Regra de Migrations (EF Core)
+- Sempre que uma alteração for feita em **entidades, DbContext, Fluent API (`OnModelCreating`), Value Objects mapeados, ou qualquer configuração que afete o schema**, você **deve**, antes de considerar a etapa concluída:
+  1. Verificar se existe uma migration pendente para essa alteração (`dotnet ef migrations has-pending-model-changes` ou comparação manual do modelo com a última migration aplicada).
+  2. Caso exista alteração de schema sem migration correspondente, **gerar e sugerir explicitamente o comando** (ex: `dotnet ef migrations add NomeDaMigration --project ... --startup-project ...`), nunca aplicar (`update`) sem confirmação do usuário.
+  3. Reportar isso de forma destacada no resumo da etapa — nunca deixar implícito ou omitir só porque a build passou (build passa mesmo com schema desatualizado).
+- Nunca finalize uma etapa que envolveu mudança de entidade/DbContext sem responder explicitamente: **"Migration necessária: sim/não"** e, se sim, o nome sugerido e o comando.
 
 ## Proibições
 
@@ -71,7 +79,12 @@ Sempre que for sugerir ou gerar uma mensagem de commit (quando solicitado), siga
 
 ## Final de etapa
 
-Sempre parar e perguntar exatamente:
+Antes de perguntar, declare obrigatoriamente:
+
+**Migration pendente:** Sim / Não
+(se Sim: comando sugerido de `dotnet ef migrations add ...`, sem aplicar)
+
+Depois, sempre parar e perguntar exatamente:
 
 O que deseja fazer agora?
 
