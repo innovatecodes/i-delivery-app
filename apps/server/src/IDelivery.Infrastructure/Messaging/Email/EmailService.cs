@@ -21,7 +21,7 @@ public sealed class EmailService : IEmailService
     {
         if (!_options.EnableEmailSending)
         {
-            // Log email instead of sending in development (no SMTP configured)
+            // Registra o e-mail em vez de enviá-lo em desenvolvimento (SMTP não configurado)
             _logger.LogInformation("[EMAIL] To: {To}", to);
             _logger.LogInformation("[EMAIL] Subject: {Subject}", subject);
             _logger.LogInformation("[EMAIL] Body: {Body}", body);
@@ -46,9 +46,10 @@ public sealed class EmailService : IEmailService
         await client.SendMailAsync(message, cancellationToken);
     }
 
-    public async Task SendActivationEmailAsync(string to, string activationLink, CancellationToken cancellationToken = default)
+    public async Task SendActivationEmailAsync(string to, string activationPath, CancellationToken cancellationToken = default)
     {
         var subject = "Ative sua conta - iDelivery";
+        var activationUrl = $"{_options.ClientUrl.TrimEnd('/')}{activationPath}";
         var body = $@"
 <!DOCTYPE html>
 <html>
@@ -66,10 +67,10 @@ public sealed class EmailService : IEmailService
         <h2>Bem-vindo ao iDelivery!</h2>
         <p>Obrigado por se cadastrar. Para ativar sua conta, clique no botão abaixo:</p>
         <p style='text-align: center; margin: 30px 0;'>
-            <a href='{activationLink}' class='button'>Ativar Conta</a>
+            <a href='{activationUrl}' class='button'>Ativar Conta</a>
         </p>
         <p>Ou copie e cole este link no navegador:</p>
-        <p style='word-break: break-all; color: #2563eb;'>{activationLink}</p>
+        <p style='word-break: break-all; color: #2563eb;'>{activationUrl}</p>
         <p>Este link expira em 24 horas.</p>
         <div class='footer'>
             <p>Se você não criou esta conta, por favor ignore este e-mail.</p>

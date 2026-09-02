@@ -44,6 +44,7 @@ public sealed class ForgotPasswordCommandHandler : ICommandHandler<ForgotPasswor
         var resetTokenExpiresAt = DateTime.UtcNow.AddHours(1);
 
         user.SetResetPasswordToken(resetTokenHash, resetTokenExpiresAt);
+        user.RequestPasswordReset();
 
         var resetLink = $"https://app.idelivery.com/reset-password?token={resetToken}&email={Uri.EscapeDataString(command.Email)}";
         

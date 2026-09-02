@@ -107,7 +107,7 @@ public class UserTests
         var tokenHash = token.GetHashCode().ToString();
         user.SetActivationToken(tokenHash, DateTime.UtcNow.AddHours(1));
 
-        var result = user.Activate(tokenHash);
+        var result = user.Activate();
 
         result.IsSuccess.Should().BeTrue();
         user.Status.Should().Be(UserStatus.Active);
@@ -128,9 +128,9 @@ public class UserTests
         var token = "valid-token";
         var tokenHash = token.GetHashCode().ToString();
         user.SetActivationToken(tokenHash, DateTime.UtcNow.AddHours(1));
-        user.Activate(tokenHash);
+        user.Activate();
 
-        var result = user.Activate(tokenHash);
+        var result = user.Activate();
 
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("User.AlreadyActive");
@@ -149,7 +149,7 @@ public class UserTests
 
         user.SetActivationToken("correct-token-hash", DateTime.UtcNow.AddHours(1));
 
-        var result = user.Activate("any-token");
+        var result = user.Activate();
 
         result.IsSuccess.Should().BeTrue();
         user.Status.Should().Be(UserStatus.Active);
@@ -169,7 +169,7 @@ public class UserTests
         var tokenHash = "token-hash";
         user.SetActivationToken(tokenHash, DateTime.UtcNow.AddHours(-1));
 
-        var result = user.Activate(tokenHash);
+        var result = user.Activate();
 
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("User.ActivationTokenExpired");
@@ -263,7 +263,7 @@ public class UserTests
     }
 
     [Fact]
-    public void RequestPasswordReset_WhenActive_ShouldSetToken()
+    public void RequestPasswordReset_WhenActive_ShouldSucceed()
     {
         var userResult = User.Create(
             Email.Create("john@test.com").Value,
@@ -274,10 +274,9 @@ public class UserTests
         var user = userResult.Value;
         user.ActivateByAdmin();
 
-        var result = user.RequestPasswordReset("reset-token-hash", DateTime.UtcNow.AddHours(1));
+        var result = user.RequestPasswordReset();
 
         result.IsSuccess.Should().BeTrue();
-        user.ResetPasswordTokenHash.Should().Be("reset-token-hash");
     }
 
     [Fact]
@@ -291,7 +290,7 @@ public class UserTests
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
 
-        var result = user.RequestPasswordReset("reset-token-hash", DateTime.UtcNow.AddHours(1));
+        var result = user.RequestPasswordReset();
 
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("User.NotActive");
@@ -308,9 +307,10 @@ public class UserTests
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();
-        user.RequestPasswordReset("reset-token-hash", DateTime.UtcNow.AddHours(1));
+        user.RequestPasswordReset();
+        user.SetResetPasswordToken("reset-token-hash", DateTime.UtcNow.AddHours(1));
 
-        var result = user.ResetPassword("reset-token-hash", "new-password-hash");
+        var result = user.ResetPassword("new-password-hash");
 
         result.IsSuccess.Should().BeTrue();
         user.PasswordHash.Should().Be("new-password-hash");
@@ -328,9 +328,10 @@ public class UserTests
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();
-        user.RequestPasswordReset("correct-token-hash", DateTime.UtcNow.AddHours(1));
+        user.RequestPasswordReset();
+        user.SetResetPasswordToken("correct-token-hash", DateTime.UtcNow.AddHours(1));
 
-        var result = user.ResetPassword("any-token", "new-password-hash");
+        var result = user.ResetPassword("new-password-hash");
 
         result.IsSuccess.Should().BeTrue();
         user.PasswordHash.Should().Be("new-password-hash");
@@ -347,9 +348,10 @@ public class UserTests
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();
-        user.RequestPasswordReset("reset-token-hash", DateTime.UtcNow.AddHours(-1));
+        user.RequestPasswordReset();
+        user.SetResetPasswordToken("reset-token-hash", DateTime.UtcNow.AddHours(-1));
 
-        var result = user.ResetPassword("reset-token-hash", "new-password-hash");
+        var result = user.ResetPassword("new-password-hash");
 
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("User.ResetTokenExpired");

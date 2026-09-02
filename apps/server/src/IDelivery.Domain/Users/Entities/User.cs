@@ -17,7 +17,7 @@ public sealed class User : AggregateRoot
 {
     public Email Email { get; private set; } 
     public string? PasswordHash { get; private set; }
-    public string FullName { get; private set; } = null!;
+    public string FullName { get; private set; } 
     public PhoneNumber? PhoneNumber { get; private set; }
     public Role Role { get; private set; }
     public Guid? TenantId { get; private set; }
@@ -114,9 +114,9 @@ public sealed class User : AggregateRoot
 
     /// <summary>
     /// Ativa a conta do usuário (confirmação de email).
-    /// Recebe o hash do token já calculado pela Application.
+    /// A validação do token é feita pela Application layer antes de chamar este método.
     /// </summary>
-    public Result Activate(string tokenHash)
+    public Result Activate()
     {
         if (Status == UserStatus.Active)
             return Result.Failure(new Error("User.AlreadyActive", "Usuário já está ativo"));
@@ -179,29 +179,26 @@ public sealed class User : AggregateRoot
     }
 
     /// <summary>
-    /// Inicia processo de reset de senha (recebe token hash gerado pela Application).
+    /// Inicia processo de reset de senha.
+    /// O token original é gerado e enviado pela Application layer.
     /// </summary>
-    public Result RequestPasswordReset(string tokenHash, DateTime expiresAt)
+    public Result RequestPasswordReset()
     {
         if (Status != UserStatus.Active)
             return Result.Failure(new Error("User.NotActive", "Apenas usuários ativos podem resetar senha"));
 
-        ResetPasswordTokenHash = tokenHash;
-        ResetPasswordTokenExpiresAt = expiresAt;
         UpdatedAt = DateTime.UtcNow;
 
-        // O evento precisa do token original para envio por email
-        // Isso será tratado na Application layer
-        AddDomainEvent(new UserPasswordResetRequestedDomainEvent(Id, Email.Value, string.Empty));
+        AddDomainEvent(new UserPasswordResetRequestedDomainEvent(Id, Email.Value));
 
         return Result.Success();
     }
 
     /// <summary>
     /// Reseta a senha usando token.
-    /// Recebe o hash do token já calculado pela Application.
+    /// A validação do token é feita pela Application layer antes de chamar este método.
     /// </summary>
-    public Result ResetPassword(string tokenHash, string passwordHash)
+    public Result ResetPassword(string passwordHash)
     {
         if (ResetPasswordTokenHash == null)
             return Result.Failure(new Error("User.InvalidResetToken", "Token de reset inválido"));

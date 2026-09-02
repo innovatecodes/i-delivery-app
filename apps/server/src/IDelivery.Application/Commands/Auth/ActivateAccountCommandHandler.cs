@@ -33,7 +33,7 @@ public sealed class ActivateAccountCommandHandler : ICommandHandler<ActivateAcco
             return Result.Failure(new Error("Auth.InvalidActivationToken", "Token de ativação inválido ou expirado"));
         }
 
-        var activationResult = user.Activate(command.Token);
+        var activationResult = user.Activate();
         
         if (activationResult.IsFailure)
         {

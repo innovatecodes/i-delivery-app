@@ -538,7 +538,8 @@ public class ResetPasswordCommandHandlerTests
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();
-        user.RequestPasswordReset("reset-token", DateTime.UtcNow.AddHours(1));
+        user.RequestPasswordReset();
+        user.SetResetPasswordToken("reset-token", DateTime.UtcNow.AddHours(1));
 
         _mockUserRepository.Setup(x => x.GetByStatusAsync(UserStatus.Active, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<User> { user });
