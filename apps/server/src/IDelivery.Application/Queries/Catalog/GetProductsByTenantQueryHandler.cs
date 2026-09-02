@@ -5,7 +5,7 @@ using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Queries.Catalog;
 
-public sealed class GetProductsByTenantQueryHandler : ICommandHandler<GetProductsByTenantQuery, IReadOnlyList<ProductResponse>>
+public sealed class GetProductsByTenantQueryHandler : IQueryHandler<GetProductsByTenantQuery, IReadOnlyList<ProductResponse>>
 {
     private readonly IProductRepository _productRepository;
     private readonly ITenantContext _tenantContext;

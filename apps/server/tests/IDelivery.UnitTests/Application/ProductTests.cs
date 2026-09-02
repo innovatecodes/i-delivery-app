@@ -2,6 +2,7 @@ using IDelivery.Application.Commands.Catalog;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Domain.Catalog.Entities;
+using IDelivery.Domain.Common.ValueObjects;
 using FluentAssertions;
 using Moq;
 using System;
@@ -30,7 +31,7 @@ public class CreateProductCommandHandlerTests
             "Coca-Cola 350ml",
             5.50m,
             "BRL",
-            Guid.NewGuid(),
+            null,
             "Refrigerante lata",
             "https://example.com/coca.png",
             1);
@@ -111,7 +112,7 @@ public class UpdateProductCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidCommand_ShouldUpdateProduct()
     {
-        var productResult = Product.Create(_tenantId, "Coca-Cola", 5.50m, "BRL", null, null, null, 0);
+        var productResult = Product.Create(_tenantId, "Coca-Cola", Money.Create(5.50m, "BRL").Value, null, null, null, 0);
         Assert.True(productResult.IsSuccess);
         var product = productResult.Value;
 
@@ -163,7 +164,7 @@ public class UpdateProductCommandHandlerTests
     [Fact]
     public async Task Handle_WithExistingName_ShouldFail()
     {
-        var productResult = Product.Create(_tenantId, "Coca-Cola", 5.50m, "BRL", null, null, null, 0);
+        var productResult = Product.Create(_tenantId, "Coca-Cola", Money.Create(5.50m, "BRL").Value, null, null, null, 0);
         Assert.True(productResult.IsSuccess);
         var product = productResult.Value;
 
@@ -205,7 +206,7 @@ public class DeleteProductCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidCommand_ShouldDeleteProduct()
     {
-        var productResult = Product.Create(Guid.NewGuid(), "Coca-Cola", 5.50m, "BRL", null, null, null, 0);
+        var productResult = Product.Create(Guid.NewGuid(), "Coca-Cola", Money.Create(5.50m, "BRL").Value, null, null, null, 0);
         Assert.True(productResult.IsSuccess);
         var product = productResult.Value;
 
@@ -248,7 +249,7 @@ public class CreateProductCommandValidatorTests
             "Coca-Cola 350ml",
             5.50m,
             "BRL",
-            Guid.NewGuid(),
+            null,
             "Refrigerante lata",
             "https://example.com/coca.png",
             1);

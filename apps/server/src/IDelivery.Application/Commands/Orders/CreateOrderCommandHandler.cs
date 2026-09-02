@@ -1,6 +1,7 @@
 using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Customers.Entities;
 using IDelivery.Domain.Delivery.Entities;
 using IDelivery.Domain.Orders.Entities;
@@ -59,7 +60,6 @@ public sealed class CreateOrderCommandHandler : ICommandHandler<CreateOrderComma
                 cartItem.ProductId,
                 cartItem.ProductName,
                 cartItem.UnitPrice,
-                cartItem.Currency,
                 cartItem.Quantity);
 
             if (itemResult.IsFailure)
@@ -68,23 +68,48 @@ public sealed class CreateOrderCommandHandler : ICommandHandler<CreateOrderComma
             items.Add(itemResult.Value);
         }
 
-        var deliveryFee = command.DeliveryFee;
-        if (deliveryFee == 0)
+        var cartTotal = cart.GetTotal();
+        Money deliveryFee;
+        if (command.DeliveryFee == 0)
         {
             var settings = await _deliverySettingsRepository.GetByTenantIdAsync(tenantId.Value, cancellationToken);
             if (settings is not null)
             {
-                deliveryFee = settings.CalculateFee(items.Sum(i => i.GetSubtotal()), command.DeliveryDistanceKm);
+                deliveryFee = settings.CalculateFee(cartTotal, command.DeliveryDistanceKm);
+            }
+            else
+            {
+                deliveryFee = Money.Zero(cartTotal.Currency);
             }
         }
+        else
+        {
+            var deliveryFeeResult = Money.Create(command.DeliveryFee, command.Currency);
+            if (deliveryFeeResult.IsFailure)
+                return Result.Failure<Guid>(deliveryFeeResult.Error);
+            deliveryFee = deliveryFeeResult.Value;
+        }
+
+        var addressResult = Address.Create(
+            command.DeliveryStreet,
+            command.DeliveryNumber,
+            command.DeliveryComplement,
+            command.DeliveryNeighborhood,
+            command.DeliveryCity,
+            command.DeliveryState,
+            command.DeliveryZipCode,
+            command.DeliveryReference);
+        if (addressResult.IsFailure)
+            return Result.Failure<Guid>(addressResult.Error);
+
+        var deliveryAddress = addressResult.Value;
 
         var orderResult = Order.Create(
             tenantId.Value,
             customer.Id,
             items,
             deliveryFee,
-            command.Currency,
-            command.DeliveryAddress,
+            deliveryAddress,
             command.DeliveryDistanceKm);
 
         if (orderResult.IsFailure)

@@ -1,7 +1,6 @@
 using IDelivery.Domain.Tenants.Entities;
 using IDelivery.Domain.Tenants.Enums;
 using IDelivery.Domain.Common.ValueObjects;
-using IDelivery.Domain.Tenants.ValueObjects;
 using Xunit;
 using FluentAssertions;
 
@@ -115,7 +114,7 @@ public class TenantTests
         Assert.True(createResult.IsSuccess);
         var tenant = createResult.Value;
 
-        var address = new Address("Rua A", "123", "Apto 10", "Centro", "São Paulo", "SP", ZipCode.Create("01234-567"));
+        var address = new Address("Rua A", "123", "Apto 10", "Centro", "São Paulo", "SP", ZipCode.Create("01234-567").Value);
         var result = tenant.UpdateAddress(address);
 
         result.IsSuccess.Should().BeTrue();
@@ -130,9 +129,9 @@ public class TenantTests
         Assert.True(createResult.IsSuccess);
         var tenant = createResult.Value;
 
-        var email = Email.Create("test@restaurant.com");
-        var phone = PhoneNumber.Create("(11) 99999-9999");
-        var whatsApp = PhoneNumber.Create("(11) 98888-8888");
+        var email = Email.Create("test@restaurant.com").Value;
+        var phone = PhoneNumber.Create("(11) 99999-9999").Value;
+        var whatsApp = PhoneNumber.Create("(11) 98888-8888").Value;
 
         var result = tenant.UpdateContactInfo(email, phone, whatsApp);
 

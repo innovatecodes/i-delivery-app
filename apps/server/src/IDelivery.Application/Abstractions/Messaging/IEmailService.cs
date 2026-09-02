@@ -1,4 +1,4 @@
-namespace IDelivery.Application.Abstractions.Services;
+namespace IDelivery.Application.Abstractions.Messaging;
 
 public interface IEmailService
 {

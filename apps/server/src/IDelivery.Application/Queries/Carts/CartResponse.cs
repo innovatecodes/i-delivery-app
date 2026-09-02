@@ -7,6 +7,7 @@ public sealed record CartResponse(
     string? SessionId,
     List<CartItemResponse> Items,
     decimal TotalAmount,
+    string Currency,
     int TotalItems,
     DateTime CreatedAt,
     DateTime? UpdatedAt);

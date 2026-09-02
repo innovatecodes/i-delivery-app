@@ -1,3 +1,4 @@
+using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Application.Abstractions.Security;

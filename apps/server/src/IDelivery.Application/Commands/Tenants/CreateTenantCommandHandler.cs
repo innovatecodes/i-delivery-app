@@ -1,5 +1,5 @@
 using IDelivery.Application.Abstractions.Persistence;
-using IDelivery.Application.Abstractions.Security;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
 using IDelivery.Domain.Tenants.Entities;
 using IDelivery.Application.Abstractions.CQRS;
@@ -9,17 +9,11 @@ namespace IDelivery.Application.Commands.Tenants;
 public sealed class CreateTenantCommandHandler : ICommandHandler<CreateTenantCommand, Guid>
 {
     private readonly ITenantRepository _tenantRepository;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly ISecureTokenGenerator _tokenGenerator;
 
-    public CreateTenantCommandHandler( 
-        ITenantRepository tenantRepository,
-        IPasswordHasher passwordHasher,
-        ISecureTokenGenerator tokenGenerator)
+    public CreateTenantCommandHandler(
+        ITenantRepository tenantRepository)
     {
         _tenantRepository = tenantRepository;
-        _passwordHasher = passwordHasher;
-        _tokenGenerator = tokenGenerator;
     }
 
     public async Task<Result<Guid>> Handle(CreateTenantCommand command, CancellationToken cancellationToken = default)
@@ -29,24 +23,68 @@ public sealed class CreateTenantCommandHandler : ICommandHandler<CreateTenantCom
             return Result.Failure<Guid>(new Error("Tenant.SlugAlreadyExists", "Slug já está em uso"));
         }
 
+        Address? address = null;
+        if (!string.IsNullOrWhiteSpace(command.AddressStreet) &&
+            !string.IsNullOrWhiteSpace(command.AddressNumber) &&
+            !string.IsNullOrWhiteSpace(command.AddressNeighborhood) &&
+            !string.IsNullOrWhiteSpace(command.AddressCity) &&
+            !string.IsNullOrWhiteSpace(command.AddressState) &&
+            !string.IsNullOrWhiteSpace(command.AddressZipCode))
+        {
+            var addressResult = Address.Create(
+                command.AddressStreet,
+                command.AddressNumber,
+                command.AddressComplement,
+                command.AddressNeighborhood,
+                command.AddressCity,
+                command.AddressState,
+                command.AddressZipCode,
+                command.AddressReference);
+            if (addressResult.IsFailure)
+                return Result.Failure<Guid>(addressResult.Error);
+            address = addressResult.Value;
+        }
+
+        Email? email = null;
+        if (!string.IsNullOrWhiteSpace(command.Email))
+        {
+            var emailResult = Email.Create(command.Email);
+            if (emailResult.IsFailure)
+                return Result.Failure<Guid>(emailResult.Error);
+            email = emailResult.Value;
+        }
+
+        PhoneNumber? phone = null;
+        if (!string.IsNullOrWhiteSpace(command.Phone))
+        {
+            var phoneResult = PhoneNumber.Create(command.Phone);
+            if (phoneResult.IsFailure)
+                return Result.Failure<Guid>(phoneResult.Error);
+            phone = phoneResult.Value;
+        }
+
+        PhoneNumber? whatsApp = null;
+        if (!string.IsNullOrWhiteSpace(command.WhatsApp))
+        {
+            var whatsAppResult = PhoneNumber.Create(command.WhatsApp);
+            if (whatsAppResult.IsFailure)
+                return Result.Failure<Guid>(whatsAppResult.Error);
+            whatsApp = whatsAppResult.Value;
+        }
+
         var tenantResult = Tenant.Create(
             command.Name,
             command.Slug,
             command.Description,
             command.LogoUrl,
-            command.Address,
-            command.Email,
-            command.Phone,
-            command.WhatsApp);
+            address,
+            email,
+            phone,
+            whatsApp);
 
         if (tenantResult.IsFailure)
         {
             return Result.Failure<Guid>(tenantResult.Error);
-        }
-
-        if (command.Email is not null)
-        {
-            // Handle initial admin user creation if needed
         }
 
         await _tenantRepository.AddAsync(tenantResult.Value, cancellationToken);

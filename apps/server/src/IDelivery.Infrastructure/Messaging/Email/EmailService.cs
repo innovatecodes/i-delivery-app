@@ -1,27 +1,30 @@
 using System.Net.Mail;
 using System.Net;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using IDelivery.Application.Abstractions.Services;
+using IDelivery.Application.Abstractions.Messaging;
 
-namespace IDelivery.Infrastructure.Email;
+namespace IDelivery.Infrastructure.Messaging.Email;
 
 public sealed class EmailService : IEmailService
 {
     private readonly EmailOptions _options;
+    private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IOptions<EmailOptions> options)
+    public EmailService(IOptions<EmailOptions> options, ILogger<EmailService> logger)
     {
         _options = options.Value;
+        _logger = logger;
     }
 
     public async Task SendAsync(string to, string subject, string body, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(_options.SmtpHost) || string.IsNullOrWhiteSpace(_options.SmtpUser))
+        if (!_options.EnableEmailSending)
         {
             // Log email instead of sending in development (no SMTP configured)
-            Console.WriteLine($"[EMAIL] To: {to}");
-            Console.WriteLine($"[EMAIL] Subject: {subject}");
-            Console.WriteLine($"[EMAIL] Body: {body}");
+            _logger.LogInformation("[EMAIL] To: {To}", to);
+            _logger.LogInformation("[EMAIL] Subject: {Subject}", subject);
+            _logger.LogInformation("[EMAIL] Body: {Body}", body);
             return;
         }
 

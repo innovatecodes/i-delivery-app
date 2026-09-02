@@ -1,4 +1,5 @@
 using IDelivery.Domain.Orders.Entities;
+using IDelivery.Domain.Common.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -25,25 +26,83 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasConversion<int>()
             .IsRequired();
 
-        builder.Property(o => o.Subtotal)
-            .HasPrecision(18, 2)
-            .IsRequired();
+        builder.OwnsOne(o => o.Subtotal, money =>
+        {
+            money.Property(m => m.Amount)
+                .HasColumnName("Subtotal")
+                .HasPrecision(18, 2)
+                .IsRequired();
 
-        builder.Property(o => o.DeliveryFee)
-            .HasPrecision(18, 2)
-            .IsRequired();
+            money.Property(m => m.Currency)
+                .HasColumnName("Currency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
 
-        builder.Property(o => o.TotalAmount)
-            .HasPrecision(18, 2)
-            .IsRequired();
+        builder.OwnsOne(o => o.DeliveryFee, money =>
+        {
+            money.Property(m => m.Amount)
+                .HasColumnName("DeliveryFee")
+                .HasPrecision(18, 2)
+                .IsRequired();
 
-        builder.Property(o => o.Currency)
-            .HasMaxLength(3)
-            .IsRequired();
+            money.Property(m => m.Currency)
+                .HasColumnName("Currency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
 
-        builder.Property(o => o.DeliveryAddress)
-            .HasMaxLength(500)
-            .IsRequired();
+        builder.OwnsOne(o => o.TotalAmount, money =>
+        {
+            money.Property(m => m.Amount)
+                .HasColumnName("TotalAmount")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            money.Property(m => m.Currency)
+                .HasColumnName("Currency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
+
+        builder.OwnsOne(o => o.DeliveryAddress, address =>
+        {
+            address.Property(a => a.Street)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            address.Property(a => a.Number)
+                .HasMaxLength(20)
+                .IsRequired();
+
+            address.Property(a => a.Complement)
+                .HasMaxLength(100)
+                .IsRequired(false);
+
+            address.Property(a => a.Neighborhood)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            address.Property(a => a.City)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            address.Property(a => a.State)
+                .HasMaxLength(2)
+                .IsRequired();
+
+            address.OwnsOne(a => a.ZipCode, zip =>
+            {
+                zip.Property(z => z.Value)
+                    .HasColumnName("ZipCode")
+                    .HasMaxLength(10)
+                    .IsRequired();
+            });
+
+            address.Property(a => a.Reference)
+                .HasMaxLength(200)
+                .IsRequired(false);
+        });
 
         builder.Property(o => o.DeliveryDistanceKm)
             .HasPrecision(10, 2)

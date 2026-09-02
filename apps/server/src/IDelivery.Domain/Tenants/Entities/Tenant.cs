@@ -1,6 +1,5 @@
 using IDelivery.SharedKernel.Common.Result;
 using IDelivery.Domain.Common.ValueObjects;
-using IDelivery.Domain.Tenants.ValueObjects;
 using IDelivery.Domain.Tenants.Enums;
 using IDelivery.Domain.Tenants.Events;
 using IDelivery.Domain.Common.Entities;

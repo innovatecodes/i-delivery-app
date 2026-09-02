@@ -1,6 +1,4 @@
 using IDelivery.Application.Abstractions.CQRS;
-using IDelivery.Domain.Common.ValueObjects;
-using IDelivery.Domain.Tenants.ValueObjects;
 
 namespace IDelivery.Application.Commands.Tenants;
 
@@ -9,8 +7,15 @@ public sealed record UpdateTenantCommand(
     string Name,
     string? Description = null,
     string? LogoUrl = null,
-    Address? Address = null,
-    Email? Email = null,
-    PhoneNumber? Phone = null,
-    PhoneNumber? WhatsApp = null
+    string? AddressStreet = null,
+    string? AddressNumber = null,
+    string? AddressComplement = null,
+    string? AddressNeighborhood = null,
+    string? AddressCity = null,
+    string? AddressState = null,
+    string? AddressZipCode = null,
+    string? AddressReference = null,
+    string? Email = null,
+    string? Phone = null,
+    string? WhatsApp = null
 ) : ICommand;

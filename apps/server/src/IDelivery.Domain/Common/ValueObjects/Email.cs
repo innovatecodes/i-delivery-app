@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using IDelivery.Domain.Common.Exceptions;
+using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Domain.Common.ValueObjects;
 
@@ -20,25 +20,25 @@ public sealed class Email : ValueObject
 
     private Email(string value)
     {
+        Value = value.Trim().ToLowerInvariant();
+    }
+
+    public static Result<Email> Create(string value)
+    {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException("O e-mail não pode ser vazio");
+            return Result.Failure<Email>(new Error("Email.Empty", "O e-mail não pode ser vazio"));
 
         var trimmed = value.Trim().ToLowerInvariant();
         if (!EmailRegex.IsMatch(trimmed))
-            throw new DomainException("Formato de e-mail inválido");
+            return Result.Failure<Email>(new Error("Email.InvalidFormat", "Formato de e-mail inválido"));
 
-        Value = trimmed;
+        return Result.Success(new Email(trimmed));
     }
-
-    public static Email Create(string value) => new(value);
 
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return Value;
     }
-
-    public static implicit operator string(Email email) => email.Value;
-    public static explicit operator Email(string value) => Create(value);
 
     public override string ToString() => Value;
 }

@@ -58,12 +58,17 @@ Se houver problema arquitetural, corrija somente o necessário.
 - Nunca finalize uma etapa que envolveu mudança de entidade/DbContext sem responder explicitamente: **"Migration necessária: sim/não"** e, se sim, o nome sugerido e o comando.
 
 ### Regra de Testes Automatizados
-- Sempre que uma etapa introduzir ou alterar **Entidades, Commands, Queries, Handlers, Services, Controllers, ou componentes de infraestrutura** (repositories, autenticação, multi-tenancy, integrações externas), você **deve**, antes de considerar a etapa concluída:
-  1. Verificar se já existe teste equivalente cobrindo o comportamento novo/alterado.
-  2. Caso não exista, criar teste(s) automatizado(s) (unitário e/ou de integração, conforme o tipo de componente) cobrindo o caso principal e pelo menos um caso de borda/erro relevante.
-  3. Rodar a suíte de testes e reportar o resultado (passou/falhou, quantos testes novos/alterados).
-  4. Reportar isso de forma destacada no resumo da etapa — nunca deixar implícito ou omitir só porque a build passou (build passa mesmo com cobertura de teste).
-- Nunca finalize uma etapa que introduziu regra de negócio, Command/Query/Handler ou endpoint novo sem responder explicitamente: **"Testes criados: sim/não"** e, se sim, quais arquivos/casos foram cobertos. Se não, **justificar explicitamente de forma inequívoca o motivo**, detalhando claramente o porquê de os testes em `tests/IDelivery.IntegrationTests` e `tests/IDelivery.UnitTests` não terem sido implementados, sem deixar a ausência implícita.
+- Sempre que uma etapa introduzir ou alterar **Entidades, Commands, Queries, Handlers, Services, Controllers, ou componentes de infraestrutura** (repositories, autenticação, multi-tenancy, integrações externas), você **deve obrigatoriamente auditar e sincronizar os testes físicos** em `tests/` (`tests/IDelivery.IntegrationTests` e/ou `tests/IDelivery.UnitTests`) antes de considerar a etapa concluída. Isso é uma varredura obrigatória, componente a componente — nunca pule esta etapa só porque "não parece necessário".
+
+- Para **cada** classe/componente tocado na etapa (novo ou alterado), siga esta ordem:
+  1. **Buscar** se já existe arquivo de teste físico correspondente em `tests/IDelivery.UnitTests` e/ou `tests/IDelivery.IntegrationTests` (não assuma pela ausência de menção anterior — pesquise no diretório).
+  2. **Se existir teste e o componente NÃO sofreu alteração de comportamento nesta etapa** → manter o teste como está. Não recriar, não duplicar, não reescrever sem necessidade.
+  3. **Se existir teste e o componente sofreu alteração** (assinatura, regra de negócio, fluxo, retorno, validação, etc.) → **atualizar** o arquivo de teste existente para refletir o novo comportamento, preservando os casos que continuam válidos e ajustando/adicionando os que mudaram.
+  4. **Se o componente for novo, ou for um componente alterado sem nenhum teste existente** → **criar fisicamente** o(s) arquivo(s) de teste (unitário e/ou de integração, conforme o tipo de componente) no diretório apropriado, cobrindo o caso principal e pelo menos um caso de borda/erro relevante.
+  5. Nunca crie um teste novo para um componente que já possui teste equivalente cobrindo o mesmo comportamento — isso é duplicação e é proibido.
+- Ao final, **rodar a suíte de testes completa** e reportar o resultado (passou/falhou), discriminando: quantos testes foram **criados**, quantos foram **atualizados** e quantos foram **mantidos sem alteração**.
+- Reportar isso de forma destacada no resumo da etapa — nunca deixar implícito ou omitir só porque a build passou (build passa mesmo com testes desatualizados ou ausentes).
+- Nunca finalize uma etapa que introduziu ou alterou regra de negócio, Entidade, Command/Query/Handler, Service, Controller ou endpoint novo sem responder explicitamente: **"Testes criados/atualizados/mantidos: sim/não"** e, para cada categoria aplicável (criados, atualizados, mantidos), listar os **arquivos físicos** e os casos cobertos em `tests/IDelivery.IntegrationTests` e/ou `tests/IDelivery.UnitTests`. Se nenhuma ação de teste foi feita apesar de haver componente novo/alterado, **justificar explicitamente de forma inequívoca o motivo**, detalhando claramente o porquê, sem deixar a ausência implícita.
 
 ## Proibições
 
@@ -101,9 +106,14 @@ Antes de perguntar, você **deve preencher literalmente**, com texto (nunca com 
   - Se Não → motivo: <PREENCHER: por que não há impacto de schema>
 
 - Introdução/alteração de Entidade, Command, Query, Handler, Service, Controller ou infraestrutura: <PREENCHER: Sim ou Não>
-- Testes criados/atualizados: <PREENCHER: Sim ou Não>
-  - Se Sim → arquivos/casos cobertos: <PREENCHER: lista de arquivos e cenários testados>
-  - Se Não e deveria ter → justificativa: <PREENCHER: justificar explicitamente o motivo de não ter criado testes em tests/IDelivery.IntegrationTests e tests/IDelivery.UnitTests>
+- Auditoria de testes realizada (busca por teste existente para cada componente novo/alterado): <PREENCHER: Sim ou Não>
+- Testes criados (componentes novos ou alterados sem teste prévio): <PREENCHER: Sim ou Não>
+  - Se Sim → arquivos físicos e casos cobertos: <PREENCHER: lista de arquivos em tests/ e cenários testados>
+- Testes atualizados (componentes alterados que já tinham teste): <PREENCHER: Sim ou Não>
+  - Se Sim → arquivos físicos e o que mudou no teste: <PREENCHER: lista de arquivos em tests/ e ajustes feitos>
+- Testes mantidos sem alteração (já cobriam o comportamento e nada mudou): <PREENCHER: Sim ou Não>
+  - Se Sim → arquivos físicos: <PREENCHER: lista de arquivos em tests/ que permaneceram intactos>
+- Se nenhuma das três ações acima foi feita apesar de haver componente novo/alterado → justificativa: <PREENCHER: justificar explicitamente o motivo de não ter criado/atualizado/mantido testes em tests/IDelivery.IntegrationTests e tests/IDelivery.UnitTests>
 ```
 
 Regras para preencher esse bloco:

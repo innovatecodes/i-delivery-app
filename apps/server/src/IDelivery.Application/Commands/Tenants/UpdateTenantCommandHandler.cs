@@ -1,7 +1,7 @@
 using IDelivery.Application.Abstractions.Persistence;
-using IDelivery.Application.Abstractions.CQRS;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
-using IDelivery.Application.Commands.Tenants;
+using IDelivery.Application.Abstractions.CQRS;
 
 namespace IDelivery.Application.Commands.Tenants;
 
@@ -26,22 +26,66 @@ public sealed class UpdateTenantCommandHandler : ICommandHandler<UpdateTenantCom
         if (result.IsFailure)
             return result;
 
-        if (command.Address is not null)
+        if (!string.IsNullOrWhiteSpace(command.AddressStreet) &&
+            !string.IsNullOrWhiteSpace(command.AddressNumber) &&
+            !string.IsNullOrWhiteSpace(command.AddressNeighborhood) &&
+            !string.IsNullOrWhiteSpace(command.AddressCity) &&
+            !string.IsNullOrWhiteSpace(command.AddressState) &&
+            !string.IsNullOrWhiteSpace(command.AddressZipCode))
         {
-            var addressResult = tenant.UpdateAddress(command.Address);
+            var addressResult = Address.Create(
+                command.AddressStreet,
+                command.AddressNumber,
+                command.AddressComplement,
+                command.AddressNeighborhood,
+                command.AddressCity,
+                command.AddressState,
+                command.AddressZipCode,
+                command.AddressReference);
             if (addressResult.IsFailure)
-                return addressResult;
+                return Result.Failure(addressResult.Error);
+
+            var updateAddressResult = tenant.UpdateAddress(addressResult.Value);
+            if (updateAddressResult.IsFailure)
+                return updateAddressResult;
         }
 
-        if (command.Email is not null || command.Phone is not null || command.WhatsApp is not null)
+        if (!string.IsNullOrWhiteSpace(command.Email) || !string.IsNullOrWhiteSpace(command.Phone))
         {
-            var email = command.Email ?? tenant.Email;
-            var phone = command.Phone ?? tenant.Phone;
-            var whatsApp = command.WhatsApp ?? tenant.WhatsApp;
+            Email? email = null;
+            PhoneNumber? phone = null;
+            PhoneNumber? whatsApp = null;
 
-            if (email is not null && phone is not null)
+            if (!string.IsNullOrWhiteSpace(command.Email))
             {
-                var contactResult = tenant.UpdateContactInfo(email, phone, whatsApp);
+                var emailResult = Email.Create(command.Email);
+                if (emailResult.IsFailure)
+                    return Result.Failure(emailResult.Error);
+                email = emailResult.Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(command.Phone))
+            {
+                var phoneResult = PhoneNumber.Create(command.Phone);
+                if (phoneResult.IsFailure)
+                    return Result.Failure(phoneResult.Error);
+                phone = phoneResult.Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(command.WhatsApp))
+            {
+                var whatsAppResult = PhoneNumber.Create(command.WhatsApp);
+                if (whatsAppResult.IsFailure)
+                    return Result.Failure(whatsAppResult.Error);
+                whatsApp = whatsAppResult.Value;
+            }
+
+            var finalEmail = email ?? tenant.Email;
+            var finalPhone = phone ?? tenant.Phone;
+
+            if (finalEmail is not null && finalPhone is not null)
+            {
+                var contactResult = tenant.UpdateContactInfo(finalEmail, finalPhone, whatsApp);
                 if (contactResult.IsFailure)
                     return contactResult;
             }

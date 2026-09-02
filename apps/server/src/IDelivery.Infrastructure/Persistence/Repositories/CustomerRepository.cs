@@ -32,13 +32,13 @@ public class CustomerRepository : ICustomerRepository
     {
         return await _context.Customers
             .Include(c => c.Addresses)
-            .FirstOrDefaultAsync(c => c.TenantId == tenantId && c.Email == email, cancellationToken);
+            .FirstOrDefaultAsync(c => c.TenantId == tenantId && c.Email.Value == email, cancellationToken);
     }
 
     public async Task<bool> ExistsByEmailAsync(Guid tenantId, string email, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
         return await _context.Customers
-            .AnyAsync(c => c.TenantId == tenantId && c.Email == email && (excludeId == null || c.Id != excludeId), cancellationToken);
+            .AnyAsync(c => c.TenantId == tenantId && c.Email.Value == email && (excludeId == null || c.Id != excludeId), cancellationToken);
     }
 
     public async Task AddAsync(Customer customer, CancellationToken cancellationToken = default)

@@ -117,23 +117,23 @@ public static class DependencyInjection
 
         // Catalog Queries
         services.AddScoped<
-            ICommandHandler<GetCategoryQuery, CategoryResponse>,
+            IQueryHandler<GetCategoryQuery, CategoryResponse>,
             GetCategoryQueryHandler>();
 
         services.AddScoped<
-            ICommandHandler<GetCategoriesByTenantQuery, IReadOnlyList<CategoryResponse>>,
+            IQueryHandler<GetCategoriesByTenantQuery, IReadOnlyList<CategoryResponse>>,
             GetCategoriesByTenantQueryHandler>();
 
         services.AddScoped<
-            ICommandHandler<GetProductQuery, ProductResponse>,
+            IQueryHandler<GetProductQuery, ProductResponse>,
             GetProductQueryHandler>();
 
         services.AddScoped<
-            ICommandHandler<GetProductsByTenantQuery, IReadOnlyList<ProductResponse>>,
+            IQueryHandler<GetProductsByTenantQuery, IReadOnlyList<ProductResponse>>,
             GetProductsByTenantQueryHandler>();
 
         services.AddScoped<
-            ICommandHandler<GetProductsByCategoryQuery, IReadOnlyList<ProductResponse>>,
+            IQueryHandler<GetProductsByCategoryQuery, IReadOnlyList<ProductResponse>>,
             GetProductsByCategoryQueryHandler>();
 
         // Cart Commands

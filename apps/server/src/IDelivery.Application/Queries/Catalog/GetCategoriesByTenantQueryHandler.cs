@@ -5,7 +5,7 @@ using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Queries.Catalog;
 
-public sealed class GetCategoriesByTenantQueryHandler : ICommandHandler<GetCategoriesByTenantQuery, IReadOnlyList<CategoryResponse>>
+public sealed class GetCategoriesByTenantQueryHandler : IQueryHandler<GetCategoriesByTenantQuery, IReadOnlyList<CategoryResponse>>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly ITenantContext _tenantContext;

@@ -1,5 +1,4 @@
 using FluentValidation;
-using IDelivery.Application.Commands.Tenants;
 
 namespace IDelivery.Application.Commands.Tenants;
 
@@ -20,5 +19,9 @@ public sealed class UpdateTenantCommandValidator : AbstractValidator<UpdateTenan
         RuleFor(x => x.LogoUrl)
             .Must(uri => string.IsNullOrEmpty(uri) || Uri.IsWellFormedUriString(uri, UriKind.Absolute))
             .WithMessage("LogoUrl deve ser uma URL válida");
+
+        RuleFor(x => x.Email)
+            .EmailAddress().WithMessage("Email deve ser válido")
+            .When(x => !string.IsNullOrWhiteSpace(x.Email));
     }
 }

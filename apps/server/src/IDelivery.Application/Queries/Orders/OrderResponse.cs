@@ -13,7 +13,7 @@ public sealed record OrderResponse(
     decimal DeliveryFee,
     decimal TotalAmount,
     string Currency,
-    string DeliveryAddress,
+    AddressResponse DeliveryAddress,
     decimal? DeliveryDistanceKm,
     string? DeliveryFailureReasonDetail,
     DateTime CreatedAt,
@@ -23,6 +23,16 @@ public sealed record OrderResponse(
     DateTime? OutForDeliveryAt,
     DateTime? CompletedAt,
     DateTime? CancelledAt);
+
+public sealed record AddressResponse(
+    string Street,
+    string Number,
+    string? Complement,
+    string Neighborhood,
+    string City,
+    string State,
+    string ZipCode,
+    string? Reference);
 
 public sealed record OrderItemResponse(
     Guid Id,

@@ -53,13 +53,43 @@ Data: 2026-09-01 (atualizado B11, B12)
 - Backend build: OK (com warnings de versão EF Core Relational 9.0.1 vs 9.0.19 no IntegrationTests)
 - Backend tests: **154 unit + 29 integration** (todos passando)
 
-## Próxima etapa recomendada
-**B13 — Pagamento V1** - Implementar:
-1. Payment aggregate com estados (Pending, Paid, NotCollected)
-2. Métodos CASH e CARD_ON_DELIVERY
-3. Abstração extensível para métodos futuros
-4. Integração com B12.1: pagamento só é PAID quando Deliver confirmado
-5. Persistência com EF Core
-6. Testes unitários e de integração
+## Análise de Tratamento de Erros (Refatoração)
 
-Dependências resolvidas: B04 Tenant, B05 Users, B06 Auth, B07 Multi-tenancy, B08 Catálogo, B09 Carrinho, B10 Customer, B11 Delivery settings, B12 Pedido.
+### Arquitetura atual (Mapping)
+| Componente | Localização | Status |
+|---|---|---|
+| Result Pattern | `SharedKernel/Common/Result/Result.cs`, `Error.cs` | Implementado, funcional |
+| BaseException | `SharedKernel/Common/Exceptions/BaseException.cs` | Preservado |
+| DomainException | `Domain/Common/Exceptions/DomainExceptions.cs` | Preservado, used by VOs |
+| ApplicationException | `Application/Common/Exceptions/ApplicationException.cs` | Preservado, abstract |
+| BadRequestException | `Application/Common/Exceptions/BadRequestException.cs` | Preservado |
+| ValidationException | `Application/Common/Exceptions/ValidationException.cs` | Preservado |
+| NotFoundException | `Application/Common/Exceptions/NotFoundException.cs` | Preservado |
+| UnauthorizedException | `Application/Common/Exceptions/UnauthorizedException.cs` | Preservado |
+| ForbiddenException | `Application/Common/Exceptions/ForbiddenException.cs` | Preservado |
+| ConflictException | `Application/Common/Exceptions/ConflictException.cs` | Preservado |
+| GlobalExceptionHandler | `Api/Http/GlobalExceptionHandler.cs` | Implementado (IExceptionHandler) |
+| Error codes | Inline `new Error(...)` em 287+ locations | ⚠️ Não centralizados |
+
+### Gaps encontrados
+
+1. **Console.WriteLine em EmailService** — 3 ocorrências em `Infrastructure/Messaging/Email/EmailService.cs` devem usar ILogger
+2. **Value Objects usam DomainException** — Email, Money, PhoneNumber, ZipCode, Cnpj, Coordinates lançam DomainException. Isso é aceitável (validação técnica, não fluxo de negócio). Handlers convertem via try/catch → Result.Failure.
+3. **Handlers usam try/catch(DomainException)** — Todos os handlers que criam VOs capturam DomainException e convertem para Result.Failure. Isso é aceitável porque VOs não retornam Result.
+4. **Catalog Query Handlers implementam ICommandHandler** — 5 handlers de query implementam ICommandHandler em vez de IQueryHandler (bug existente)
+5. **Extension methods ausentes** — Não há `GetCode()`, `Match()`, etc. para Result. O código já usa `.IsSuccess`/`.IsFailure`/`.Error.Code` diretamente.
+
+### O que NÃO precisa mudar (preservado)
+- Hierarquia de exceções completa (BaseException → DomainException + ApplicationException → 6 concretas)
+- GlobalExceptionHandler (IExceptionHandler pattern)
+- Result Pattern (Result + Result<T> + Error)
+- Domain entities que retornam Result<T> corretamente
+- Value Objects que lançam DomainException (validação de invariantes)
+
+### O que PRECISA de correção
+1. **Console.WriteLine → ILogger** (EmailService)
+2. **Catalog Query Handlers** — corrigir ICommandHandler → IQueryHandler
+3. **Extension methods** — opcionalmente adicionar GetCode() para Result
+
+## Próxima etapa recomendada
+**Refatoração de Tratamento de Erros** — Corrigir os 3 gaps acima + commit unificado.

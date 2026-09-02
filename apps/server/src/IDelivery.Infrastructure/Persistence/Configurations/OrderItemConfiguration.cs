@@ -22,13 +22,18 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .HasMaxLength(200)
             .IsRequired();
 
-        builder.Property(oi => oi.UnitPrice)
-            .HasPrecision(18, 2)
-            .IsRequired();
+        builder.OwnsOne(oi => oi.UnitPrice, money =>
+        {
+            money.Property(m => m.Amount)
+                .HasColumnName("UnitPrice")
+                .HasPrecision(18, 2)
+                .IsRequired();
 
-        builder.Property(oi => oi.Currency)
-            .HasMaxLength(3)
-            .IsRequired();
+            money.Property(m => m.Currency)
+                .HasColumnName("Currency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
 
         builder.Property(oi => oi.Quantity)
             .IsRequired();

@@ -1,6 +1,7 @@
 using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Queries.Orders;
@@ -44,15 +45,23 @@ public sealed class GetOrderQueryHandler : IQueryHandler<GetOrderQuery, OrderRes
                 i.Id,
                 i.ProductId,
                 i.ProductName,
-                i.UnitPrice,
-                i.Currency,
+                i.UnitPrice.Amount,
+                i.UnitPrice.Currency,
                 i.Quantity,
-                i.GetSubtotal())).ToList(),
-            order.Subtotal,
-            order.DeliveryFee,
-            order.TotalAmount,
-            order.Currency,
-            order.DeliveryAddress!,
+                i.Subtotal.Amount)).ToList(),
+            order.Subtotal.Amount,
+            order.DeliveryFee.Amount,
+            order.TotalAmount.Amount,
+            order.Subtotal.Currency,
+            new AddressResponse(
+                order.DeliveryAddress!.Street,
+                order.DeliveryAddress.Number,
+                order.DeliveryAddress.Complement,
+                order.DeliveryAddress.Neighborhood,
+                order.DeliveryAddress.City,
+                order.DeliveryAddress.State,
+                order.DeliveryAddress.ZipCode.Value,
+                order.DeliveryAddress.Reference),
             order.DeliveryDistanceKm,
             order.DeliveryFailureReasonDetail,
             order.CreatedAt,

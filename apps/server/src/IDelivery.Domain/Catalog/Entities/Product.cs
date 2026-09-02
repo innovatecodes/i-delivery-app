@@ -48,8 +48,7 @@ public sealed class Product : AggregateRoot
     public static Result<Product> Create(
         Guid tenantId,
         string name,
-        decimal price,
-        string currency,
+        Money price,
         Guid? categoryId = null,
         string? description = null,
         string? imageUrl = null,
@@ -64,31 +63,17 @@ public sealed class Product : AggregateRoot
         if (name.Length > 200)
             return Result.Failure<Product>(new Error("Product.NameTooLong", "Nome deve ter no máximo 200 caracteres"));
 
-        if (price < 0)
-            return Result.Failure<Product>(new Error("Product.PriceNegative", "Preço não pode ser negativo"));
+        if (price is null)
+            return Result.Failure<Product>(new Error("Product.PriceRequired", "Preço é obrigatório"));
 
-        if (string.IsNullOrWhiteSpace(currency))
-            return Result.Failure<Product>(new Error("Product.CurrencyRequired", "Moeda é obrigatória"));
-
-        Money money;
-        try
-        {
-            money = Money.Create(price, currency);
-        }
-        catch (Exception ex)
-        {
-            return Result.Failure<Product>(new Error("Product.InvalidMoney", ex.Message));
-        }
-
-        var product = new Product(Guid.NewGuid(), tenantId, categoryId, name.Trim(), description, money, imageUrl, sortOrder);
+        var product = new Product(Guid.NewGuid(), tenantId, categoryId, name.Trim(), description, price, imageUrl, sortOrder);
         return Result.Success(product);
     }
 
     public Result UpdateDetails(
         string name,
         string? description,
-        decimal price,
-        string currency,
+        Money price,
         Guid? categoryId,
         string? imageUrl,
         int sortOrder)
@@ -99,22 +84,12 @@ public sealed class Product : AggregateRoot
         if (name.Length > 200)
             return Result.Failure(new Error("Product.NameTooLong", "Nome deve ter no máximo 200 caracteres"));
 
-        if (price < 0)
-            return Result.Failure(new Error("Product.PriceNegative", "Preço não pode ser negativo"));
-
-        Money money;
-        try
-        {
-            money = Money.Create(price, currency);
-        }
-        catch (Exception ex)
-        {
-            return Result.Failure(new Error("Product.InvalidMoney", ex.Message));
-        }
+        if (price is null)
+            return Result.Failure(new Error("Product.PriceRequired", "Preço é obrigatório"));
 
         Name = name.Trim();
         Description = description;
-        Price = money;
+        Price = price;
         CategoryId = categoryId;
         ImageUrl = imageUrl;
         SortOrder = sortOrder;

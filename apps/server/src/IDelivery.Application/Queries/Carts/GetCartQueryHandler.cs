@@ -2,6 +2,7 @@ using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Domain.Carts.Entities;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Queries.Carts;
@@ -42,6 +43,7 @@ public sealed class GetCartQueryHandler : IQueryHandler<GetCartQuery, CartRespon
             await _cartRepository.AddAsync(cart, cancellationToken);
         }
 
+        var total = cart.GetTotal();
         var response = new CartResponse(
             cart.Id,
             cart.TenantId,
@@ -51,11 +53,12 @@ public sealed class GetCartQueryHandler : IQueryHandler<GetCartQuery, CartRespon
                 i.Id,
                 i.ProductId,
                 i.ProductName,
-                i.UnitPrice,
-                i.Currency,
+                i.UnitPrice.Amount,
+                i.UnitPrice.Currency,
                 i.Quantity,
-                i.GetSubtotal())).ToList(),
-            cart.GetTotal(),
+                i.Subtotal.Amount)).ToList(),
+            total.Amount,
+            total.Currency,
             cart.GetItemCount(),
             cart.CreatedAt,
             cart.UpdatedAt);

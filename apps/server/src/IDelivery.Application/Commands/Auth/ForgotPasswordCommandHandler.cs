@@ -1,7 +1,7 @@
 using IDelivery.Application.Abstractions.CQRS;
+using IDelivery.Application.Abstractions.Messaging;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Application.Abstractions.Security;
-using IDelivery.Application.Abstractions.Services;
 using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Commands.Auth;

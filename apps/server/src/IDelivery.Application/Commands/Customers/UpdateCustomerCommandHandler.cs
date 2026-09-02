@@ -1,6 +1,7 @@
 using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Commands.Customers;
@@ -34,10 +35,25 @@ public sealed class UpdateCustomerCommandHandler : ICommandHandler<UpdateCustome
         if (await _customerRepository.ExistsByEmailAsync(tenantId.Value, command.Email, command.Id, cancellationToken))
             return Result.Failure(new Error("Customer.EmailAlreadyExists", "Já existe um cliente com este email"));
 
+        var emailResult = Email.Create(command.Email);
+        if (emailResult.IsFailure)
+            return Result.Failure(emailResult.Error);
+
+        var email = emailResult.Value;
+
+        PhoneNumber? phoneNumber = null;
+        if (!string.IsNullOrWhiteSpace(command.PhoneNumber))
+        {
+            var phoneResult = PhoneNumber.Create(command.PhoneNumber);
+            if (phoneResult.IsFailure)
+                return Result.Failure(phoneResult.Error);
+            phoneNumber = phoneResult.Value;
+        }
+
         var updateResult = customer.UpdateProfile(
             command.FullName,
-            command.Email,
-            command.PhoneNumber,
+            email,
+            phoneNumber,
             command.Notes);
 
         if (updateResult.IsFailure)

@@ -1,10 +1,10 @@
 using IDelivery.Domain.Common.ValueObjects;
+using IDelivery.SharedKernel.Common.Result;
 
-namespace IDelivery.Domain.Tenants.ValueObjects;
+namespace IDelivery.Domain.Common.ValueObjects;
 
 /// <summary>
-/// Endereço do tenant (restaurante/empresa).
-/// Value Object composto - imutável, igualdade por componentes.
+/// Endereço genérico - Value Object composto, imutável, igualdade por componentes.
 /// Utiliza ZipCode do kernel compartilhado para validação de CEP.
 /// </summary>
 public sealed class Address : ValueObject
@@ -44,7 +44,7 @@ public sealed class Address : ValueObject
     /// <summary>
     /// Factory method que aceita string de CEP e converte para ZipCode.
     /// </summary>
-    public static Address Create(
+    public static Result<Address> Create(
         string street,
         string number,
         string? complement,
@@ -54,9 +54,13 @@ public sealed class Address : ValueObject
         string zipCode,
         string? reference = null)
     {
-        return new Address(
+        var zipCodeResult = ZipCode.Create(zipCode);
+        if (zipCodeResult.IsFailure)
+            return Result.Failure<Address>(zipCodeResult.Error);
+
+        return Result.Success(new Address(
             street, number, complement, neighborhood, city, state,
-            ZipCode.Create(zipCode), reference);
+            zipCodeResult.Value, reference));
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
@@ -71,4 +75,3 @@ public sealed class Address : ValueObject
         yield return Reference;
     }
 }
-

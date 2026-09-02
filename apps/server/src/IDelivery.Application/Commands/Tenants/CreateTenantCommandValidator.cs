@@ -23,7 +23,11 @@ public sealed class CreateTenantCommandValidator : AbstractValidator<CreateTenan
             .WithMessage("LogoUrl deve ser uma URL válida");
 
         RuleFor(x => x.Email)
-            .Must(email => email is null || email.Value.Contains("@"))
-            .WithMessage("Email deve ser válido");
+            .EmailAddress().WithMessage("Email deve ser válido")
+            .When(x => !string.IsNullOrWhiteSpace(x.Email));
+
+        RuleFor(x => x.AddressZipCode)
+            .MaximumLength(10).WithMessage("CEP deve ter no máximo 10 caracteres")
+            .When(x => !string.IsNullOrWhiteSpace(x.AddressZipCode));
     }
 }

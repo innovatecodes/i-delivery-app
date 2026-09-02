@@ -1,8 +1,5 @@
 using IDelivery.Application.Commands.Tenants;
 using IDelivery.Application.Abstractions.Persistence;
-using IDelivery.Application.Abstractions.Security;
-using IDelivery.Domain.Tenants.ValueObjects;
-using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Tenants.Entities;
 using FluentAssertions;
 using Moq;
@@ -10,18 +7,14 @@ using System;
 using System.Threading;
 using Xunit;
 
-namespace IDelivery.UnitTests.Application; 
+namespace IDelivery.UnitTests.Application;
 
 public class CreateTenantCommandHandlerTests
 {
-    private readonly Mock<IPasswordHasher> _mockPasswordHasher;
-    private readonly Mock<ISecureTokenGenerator> _mockTokenGenerator;
     private readonly Mock<ITenantRepository> _mockTenantRepository;
 
     public CreateTenantCommandHandlerTests()
     {
-        _mockPasswordHasher = new Mock<IPasswordHasher>();
-        _mockTokenGenerator = new Mock<ISecureTokenGenerator>();
         _mockTenantRepository = new Mock<ITenantRepository>();
     }
 
@@ -32,16 +25,10 @@ public class CreateTenantCommandHandlerTests
             "Test Restaurant",
             "test-restaurant",
             "A test restaurant",
-            "https://example.com/logo.png",
-            new Address("Rua A", "123", "Apto 10", "Centro", "São Paulo", "SP", ZipCode.Create("01234-567")),
-            Email.Create("test@restaurant.com"),
-            PhoneNumber.Create("(11) 99999-9999"),
-            PhoneNumber.Create("(11) 98888-8888"));
+            "https://example.com/logo.png");
 
         var handler = new CreateTenantCommandHandler(
-            _mockTenantRepository.Object,
-            _mockPasswordHasher.Object,
-            _mockTokenGenerator.Object);
+            _mockTenantRepository.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -62,9 +49,7 @@ public class CreateTenantCommandHandlerTests
             .ReturnsAsync(true);
 
         var handler = new CreateTenantCommandHandler(
-            _mockTenantRepository.Object,
-            _mockPasswordHasher.Object,
-            _mockTokenGenerator.Object);
+            _mockTenantRepository.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -78,9 +63,7 @@ public class CreateTenantCommandHandlerTests
         var command = new CreateTenantCommand("", "test-restaurant");
 
         var handler = new CreateTenantCommandHandler(
-            _mockTenantRepository.Object,
-            _mockPasswordHasher.Object,
-            _mockTokenGenerator.Object);
+            _mockTenantRepository.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -397,13 +380,7 @@ public class CreateTenantCommandValidatorTests
     {
         var command = new CreateTenantCommand(
             "Test Restaurant",
-            "test-restaurant",
-            "A test restaurant",
-            "https://example.com/logo.png",
-            new Address("Rua A", "123", "Apto 10", "Centro", "São Paulo", "SP", ZipCode.Create("01234-567")),
-            Email.Create("test@restaurant.com"),
-            PhoneNumber.Create("(11) 99999-9999"),
-            PhoneNumber.Create("(11) 98888-8888"));
+            "test-restaurant");
 
         var validator = new CreateTenantCommandValidator();
 

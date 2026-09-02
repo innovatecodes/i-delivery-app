@@ -1,4 +1,5 @@
 using IDelivery.SharedKernel.Common.Result;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Common.Entities;
 using IDelivery.Domain.Orders.Enums;
 using IDelivery.Domain.Orders.Events;
@@ -16,11 +17,10 @@ public sealed class Order : AggregateRoot
     public Guid CustomerId { get; private set; }
     public Guid? DeliveryDriverId { get; private set; }
     public OrderState State { get; private set; }
-    public decimal Subtotal { get; private set; }
-    public decimal DeliveryFee { get; private set; }
-    public decimal TotalAmount { get; private set; }
-    public string Currency { get; private set; } = null!;
-    public string? DeliveryAddress { get; private set; }
+    public Money Subtotal { get; private set; } = null!;
+    public Money DeliveryFee { get; private set; } = null!;
+    public Money TotalAmount { get; private set; } = null!;
+    public Address? DeliveryAddress { get; private set; }
     public decimal? DeliveryDistanceKm { get; private set; }
     public string? DeliveryFailureReasonDetail { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -41,24 +41,22 @@ public sealed class Order : AggregateRoot
         Guid tenantId,
         Guid customerId,
         List<OrderItem> items,
-        decimal deliveryFee,
-        string currency,
-        string deliveryAddress,
+        Money deliveryFee,
+        Address deliveryAddress,
         decimal? deliveryDistanceKm) : base(id)
     {
         TenantId = tenantId;
         CustomerId = customerId;
         State = OrderState.Pending;
         _items.AddRange(items);
-        Subtotal = items.Sum(i => i.GetSubtotal());
+        Subtotal = items.Select(i => i.Subtotal).Aggregate(Money.Zero(items.First().UnitPrice.Currency), (acc, m) => acc.Add(m));
         DeliveryFee = deliveryFee;
-        TotalAmount = Subtotal + deliveryFee;
-        Currency = currency;
+        TotalAmount = Subtotal.Add(deliveryFee);
         DeliveryAddress = deliveryAddress;
         DeliveryDistanceKm = deliveryDistanceKm;
         CreatedAt = DateTime.UtcNow;
 
-        AddDomainEvent(new OrderCreatedDomainEvent(id, tenantId, customerId, TotalAmount, currency));
+        AddDomainEvent(new OrderCreatedDomainEvent(id, tenantId, customerId, TotalAmount));
     }
 
     /// <summary>
@@ -68,9 +66,8 @@ public sealed class Order : AggregateRoot
         Guid tenantId,
         Guid customerId,
         List<OrderItem> items,
-        decimal deliveryFee,
-        string currency,
-        string deliveryAddress,
+        Money deliveryFee,
+        Address deliveryAddress,
         decimal? deliveryDistanceKm = null)
     {
         if (tenantId == Guid.Empty)
@@ -82,16 +79,10 @@ public sealed class Order : AggregateRoot
         if (items == null || items.Count == 0)
             return Result.Failure<Order>(new Error("Order.ItemsRequired", "Pedido deve ter pelo menos um item"));
 
-        if (deliveryFee < 0)
+        if (deliveryFee.Amount < 0)
             return Result.Failure<Order>(new Error("Order.InvalidDeliveryFee", "Taxa de entrega não pode ser negativa"));
 
-        if (string.IsNullOrWhiteSpace(currency))
-            return Result.Failure<Order>(new Error("Order.CurrencyRequired", "Moeda é obrigatória"));
-
-        if (currency.Length != 3)
-            return Result.Failure<Order>(new Error("Order.InvalidCurrency", "Moeda deve ter 3 caracteres"));
-
-        if (string.IsNullOrWhiteSpace(deliveryAddress))
+        if (deliveryAddress is null)
             return Result.Failure<Order>(new Error("Order.AddressRequired", "Endereço de entrega é obrigatório"));
 
         var order = new Order(
@@ -100,8 +91,7 @@ public sealed class Order : AggregateRoot
             customerId,
             items,
             deliveryFee,
-            currency.ToUpperInvariant(),
-            deliveryAddress.Trim(),
+            deliveryAddress,
             deliveryDistanceKm);
 
         return Result.Success(order);
@@ -196,7 +186,7 @@ public sealed class Order : AggregateRoot
         CompletedAt = DateTime.UtcNow;
 
         AddDomainEvent(new OrderStatusChangedDomainEvent(Id, TenantId, OrderState.OutForDelivery, OrderState.Delivered));
-        AddDomainEvent(new OrderDeliveredDomainEvent(Id, TenantId, CustomerId, DeliveryDriverId!.Value));
+        AddDomainEvent(new OrderDeliveredDomainEvent(Id, TenantId, CustomerId, DeliveryDriverId!.Value, TotalAmount));
 
         return Result.Success();
     }

@@ -1,16 +1,18 @@
 using IDelivery.Application.Commands.Auth;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Application.Abstractions.Security;
-using IDelivery.Application.Abstractions.Services;
+using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Common.Models;
 using IDelivery.Domain.Users.Entities;
 using IDelivery.Domain.Users.Enums;
 using IDelivery.Domain.Roles;
+using IDelivery.Domain.Common.ValueObjects;
 using FluentAssertions;
 using Moq;
 using System;
 using System.Threading;
 using Xunit;
+using IDelivery.Application.Abstractions.Messaging;
 
 namespace IDelivery.UnitTests.Application;
 
@@ -186,7 +188,7 @@ public class LoginCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidCredentials_ShouldReturnAuthResult()
     {
-        var userResult = User.Create("john@test.com", "password123!", "John Doe", Role.Customer, Guid.NewGuid());
+        var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();
@@ -239,7 +241,7 @@ public class LoginCommandHandlerTests
     [Fact]
     public async Task Handle_WithWrongPassword_ShouldFail()
     {
-        var userResult = User.Create("john@test.com", "password123!", "John Doe", Role.Customer, Guid.NewGuid());
+        var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();
@@ -266,7 +268,7 @@ public class LoginCommandHandlerTests
     [Fact]
     public async Task Handle_WithInactiveAccount_ShouldFail()
     {
-        var userResult = User.Create("john@test.com", "password123!", "John Doe", Role.Customer, Guid.NewGuid());
+        var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
 
@@ -345,7 +347,7 @@ public class ActivateAccountCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidToken_ShouldActivate()
     {
-        var userResult = User.Create("john@test.com", "password123!", "John Doe", Role.Customer, Guid.NewGuid());
+        var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
 
@@ -430,7 +432,7 @@ public class ForgotPasswordCommandHandlerTests
     [Fact]
     public async Task Handle_WithExistingEmail_ShouldSendEmail()
     {
-        var userResult = User.Create("john@test.com", "password123!", "John Doe", Role.Customer, Guid.NewGuid());
+        var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();
@@ -532,7 +534,7 @@ public class ResetPasswordCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidToken_ShouldResetPassword()
     {
-        var userResult = User.Create("john@test.com", "password123!", "John Doe", Role.Customer, Guid.NewGuid());
+        var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();
@@ -634,7 +636,7 @@ public class RefreshTokenCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidToken_ShouldReturnNewAuthResult()
     {
-        var userResult = User.Create("john@test.com", "password123!", "John Doe", Role.Customer, Guid.NewGuid());
+        var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
         user.ActivateByAdmin();

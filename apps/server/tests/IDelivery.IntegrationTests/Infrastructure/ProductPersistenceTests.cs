@@ -1,4 +1,5 @@
 using IDelivery.Domain.Catalog.Entities;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -27,8 +28,7 @@ public class ProductPersistenceTests
         var productResult = Product.Create(
             _tenantId,
             "Coca-Cola 350ml",
-            5.50m,
-            "BRL",
+            Money.Create(5.50m, "BRL").Value,
             null,
             "Refrigerante lata",
             "https://example.com/coca.png",
@@ -56,8 +56,7 @@ public class ProductPersistenceTests
         var productResult = Product.Create(
             _tenantId,
             "Coca-Cola",
-            5.50m,
-            "BRL",
+            Money.Create(5.50m, "BRL").Value,
             null,
             null,
             null,
@@ -80,8 +79,7 @@ public class ProductPersistenceTests
         var productResult = Product.Create(
             _tenantId,
             "Coca-Cola",
-            5.50m,
-            "BRL",
+            Money.Create(5.50m, "BRL").Value,
             null,
             null,
             null,
@@ -91,7 +89,7 @@ public class ProductPersistenceTests
         context.Products.Add(product);
         await context.SaveChangesAsync();
 
-        product.UpdateDetails("Coca-Cola Atualizada", "Nova descrição", 6.00m, "BRL", null, "https://example.com/nova.png", 2);
+        product.UpdateDetails("Coca-Cola Atualizada", "Nova descrição", Money.Create(6.00m, "BRL").Value, null, "https://example.com/nova.png", 2);
         context.Entry(product).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         await context.SaveChangesAsync();
 
@@ -109,8 +107,7 @@ public class ProductPersistenceTests
         var productResult = Product.Create(
             _tenantId,
             "To Be Removed",
-            5.50m,
-            "BRL",
+            Money.Create(5.50m, "BRL").Value,
             null,
             null,
             null,
@@ -134,8 +131,7 @@ public class ProductPersistenceTests
         var productResult = Product.Create(
             _tenantId,
             "Coca-Cola",
-            5.50m,
-            "BRL",
+            Money.Create(5.50m, "BRL").Value,
             null,
             null,
             null,
@@ -169,8 +165,7 @@ public class ProductPersistenceTests
         var productResult = Product.Create(
             _tenantId,
             "Coca-Cola",
-            5.50m,
-            "BRL",
+            Money.Create(5.50m, "BRL").Value,
             null,
             null,
             null,
@@ -205,8 +200,7 @@ public class ProductPersistenceTests
         var productResult = Product.Create(
             _tenantId,
             "Coca-Cola",
-            5.50m,
-            "BRL",
+            Money.Create(5.50m, "BRL").Value,
             null,
             null,
             null,
@@ -231,9 +225,9 @@ public class ProductPersistenceTests
         var categoryId = Guid.NewGuid();
         var categoryId2 = Guid.NewGuid();
 
-        var prod1 = Product.Create(_tenantId, "Coca-Cola", 5.50m, "BRL", categoryId, null, null, 2);
-        var prod2 = Product.Create(_tenantId, "Pepsi", 5.00m, "BRL", categoryId, null, null, 1);
-        var prod3 = Product.Create(_tenantId, "Guaraná", 4.50m, "BRL", categoryId2, null, null, 0);
+        var prod1 = Product.Create(_tenantId, "Coca-Cola", Money.Create(5.50m, "BRL").Value, categoryId, null, null, 2);
+        var prod2 = Product.Create(_tenantId, "Pepsi", Money.Create(5.00m, "BRL").Value, categoryId, null, null, 1);
+        var prod3 = Product.Create(_tenantId, "Guaraná", Money.Create(4.50m, "BRL").Value, categoryId2, null, null, 0);
 
         Assert.True(prod1.IsSuccess && prod2.IsSuccess && prod3.IsSuccess);
 

@@ -4,9 +4,9 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using IDelivery.Application.Abstractions.Security;
+using IDelivery.Application.Abstractions.Authentication;
 
-namespace IDelivery.Infrastructure.Security;
+namespace IDelivery.Infrastructure.Authentication;
 
 public sealed class JwtTokenService : IJwtTokenService
 {

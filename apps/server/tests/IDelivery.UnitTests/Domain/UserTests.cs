@@ -1,6 +1,9 @@
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Users.Entities;
 using IDelivery.Domain.Users.Enums;
 using IDelivery.Domain.Roles;
+using IDelivery.Domain.Common.ValueObjects;
+using IDelivery.Domain.Common.Exceptions;
 using Xunit;
 using FluentAssertions;
 
@@ -14,7 +17,7 @@ public class UserTests
     public void Create_WithValidData_ShouldCreateUser()
     {
         var result = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -30,20 +33,17 @@ public class UserTests
     [Fact]
     public void Create_WithEmptyEmail_ShouldFail()
     {
-        var result = User.Create(
-            "",
-            "password123!",
-            "John Doe",
-            Role.SuperAdmin);
+        var result = Email.Create("");
 
         result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Email.Empty");
     }
 
     [Fact]
     public void Create_WithInvalidFullName_ShouldFail()
     {
         var result = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "",
             Role.SuperAdmin);
@@ -56,7 +56,7 @@ public class UserTests
     {
         var longName = new string('A', 201);
         var result = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             longName,
             Role.SuperAdmin);
@@ -69,7 +69,7 @@ public class UserTests
     public void Create_TenantScopedRoleWithoutTenant_ShouldSucceed()
     {
         var result = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.Customer);
@@ -82,7 +82,7 @@ public class UserTests
     public void Create_SuperAdminWithTenant_ShouldFail()
     {
         var result = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin,
@@ -96,7 +96,7 @@ public class UserTests
     public void Activate_WithValidToken_ShouldActivate()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -118,7 +118,7 @@ public class UserTests
     public void Activate_WhenAlreadyActive_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -140,7 +140,7 @@ public class UserTests
     public void Activate_WithTokenHashSet_ShouldActivate()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -159,7 +159,7 @@ public class UserTests
     public void Activate_WithExpiredToken_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -179,25 +179,25 @@ public class UserTests
     public void UpdateProfile_WithValidData_ShouldUpdate()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
         Assert.True(userResult.IsSuccess);
         var user = userResult.Value;
 
-        var result = user.UpdateProfile("John Updated", "(11) 99999-9999");
+        var result = user.UpdateProfile("John Updated", PhoneNumber.Create("(11) 99999-9999").Value);
 
         result.IsSuccess.Should().BeTrue();
         user.FullName.Should().Be("John Updated");
-        user.PhoneNumber.Should().Be("(11) 99999-9999");
+        user.PhoneNumber!.Value.Should().Be("5511999999999");
     }
 
     [Fact]
     public void UpdateProfile_WithEmptyFullName_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -214,7 +214,7 @@ public class UserTests
     public void UpdateProfile_WithFullNameTooLong_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -232,7 +232,7 @@ public class UserTests
     public void ChangePassword_WithValidHash_ShouldChange()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -249,7 +249,7 @@ public class UserTests
     public void ChangePassword_WithEmptyHash_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -266,7 +266,7 @@ public class UserTests
     public void RequestPasswordReset_WhenActive_ShouldSetToken()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -284,7 +284,7 @@ public class UserTests
     public void RequestPasswordReset_WhenNotActive_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -301,7 +301,7 @@ public class UserTests
     public void ResetPassword_WithValidToken_ShouldReset()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -321,7 +321,7 @@ public class UserTests
     public void ResetPassword_WithTokenHashSet_ShouldReset()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -340,7 +340,7 @@ public class UserTests
     public void ResetPassword_WithExpiredToken_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -359,7 +359,7 @@ public class UserTests
     public void RecordLogin_ShouldUpdateLastLoginAt()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -376,7 +376,7 @@ public class UserTests
     public void ActivateByAdmin_WhenNotActive_ShouldActivate()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -394,7 +394,7 @@ public class UserTests
     public void ActivateByAdmin_WhenAlreadyActive_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -412,7 +412,7 @@ public class UserTests
     public void Deactivate_WhenActive_ShouldDeactivate()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -430,7 +430,7 @@ public class UserTests
     public void Deactivate_WhenAlreadyInactive_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -449,7 +449,7 @@ public class UserTests
     public void Delete_WhenNotDeleted_ShouldDelete()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -466,7 +466,7 @@ public class UserTests
     public void Delete_WhenAlreadyDeleted_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -484,7 +484,7 @@ public class UserTests
     public void ChangeRole_WithValidRole_ShouldChange()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -502,7 +502,7 @@ public class UserTests
     public void ChangeRole_WithInvalidRole_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -519,7 +519,7 @@ public class UserTests
     public void ChangeRole_TenantScopedRoleWithoutTenant_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);
@@ -536,7 +536,7 @@ public class UserTests
     public void ChangeRole_SuperAdminWithTenant_ShouldFail()
     {
         var userResult = User.Create(
-            "john@test.com",
+            Email.Create("john@test.com").Value,
             "password123!",
             "John Doe",
             Role.SuperAdmin);

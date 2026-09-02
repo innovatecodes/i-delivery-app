@@ -22,13 +22,18 @@ public class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
             .HasMaxLength(200)
             .IsRequired();
 
-        builder.Property(ci => ci.UnitPrice)
-            .HasPrecision(18, 2)
-            .IsRequired();
+        builder.OwnsOne(ci => ci.UnitPrice, money =>
+        {
+            money.Property(m => m.Amount)
+                .HasColumnName("UnitPrice")
+                .HasPrecision(18, 2)
+                .IsRequired();
 
-        builder.Property(ci => ci.Currency)
-            .HasMaxLength(3)
-            .IsRequired();
+            money.Property(m => m.Currency)
+                .HasColumnName("Currency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
 
         builder.Property(ci => ci.Quantity)
             .IsRequired();

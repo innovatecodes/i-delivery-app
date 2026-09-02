@@ -19,37 +19,44 @@ public class CustomerAddressConfiguration : IEntityTypeConfiguration<CustomerAdd
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(a => a.Street)
-            .HasMaxLength(200)
-            .IsRequired();
+        builder.OwnsOne(a => a.Address, address =>
+        {
+            address.Property(a => a.Street)
+                .HasMaxLength(200)
+                .IsRequired();
 
-        builder.Property(a => a.Number)
-            .HasMaxLength(20)
-            .IsRequired();
+            address.Property(a => a.Number)
+                .HasMaxLength(20)
+                .IsRequired();
 
-        builder.Property(a => a.Complement)
-            .HasMaxLength(100)
-            .IsRequired(false);
+            address.Property(a => a.Complement)
+                .HasMaxLength(100)
+                .IsRequired(false);
 
-        builder.Property(a => a.Neighborhood)
-            .HasMaxLength(100)
-            .IsRequired();
+            address.Property(a => a.Neighborhood)
+                .HasMaxLength(100)
+                .IsRequired();
 
-        builder.Property(a => a.City)
-            .HasMaxLength(100)
-            .IsRequired();
+            address.Property(a => a.City)
+                .HasMaxLength(100)
+                .IsRequired();
 
-        builder.Property(a => a.State)
-            .HasMaxLength(2)
-            .IsRequired();
+            address.Property(a => a.State)
+                .HasMaxLength(2)
+                .IsRequired();
 
-        builder.Property(a => a.ZipCode)
-            .HasMaxLength(10)
-            .IsRequired();
+            address.OwnsOne(a => a.ZipCode, zip =>
+            {
+                zip.Property(z => z.Value)
+                    .HasColumnName("ZipCode")
+                    .HasMaxLength(10)
+                    .IsRequired();
+            });
 
-        builder.Property(a => a.Reference)
-            .HasMaxLength(200)
-            .IsRequired(false);
+            address.Property(a => a.Reference)
+                .HasMaxLength(200)
+                .IsRequired(false);
+        });
 
         builder.Property(a => a.IsDefault)
             .IsRequired();

@@ -1,6 +1,5 @@
 using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Tenants.Enums;
-using IDelivery.Domain.Tenants.ValueObjects;
 
 namespace IDelivery.Application.Queries.Tenants;
 

@@ -1,6 +1,7 @@
 using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Queries.Customers;
@@ -39,21 +40,21 @@ public sealed class GetCustomerQueryHandler : IQueryHandler<GetCustomerQuery, Cu
             customer.TenantId,
             customer.UserId,
             customer.FullName,
-            customer.Email,
-            customer.PhoneNumber,
+            customer.Email.Value,
+            customer.PhoneNumber?.ToString(),
             customer.Notes,
             customer.IsActive,
             customer.Addresses.Select(a => new CustomerAddressResponse(
                 a.Id,
                 a.Label,
-                a.Street,
-                a.Number,
-                a.Complement,
-                a.Neighborhood,
-                a.City,
-                a.State,
-                a.ZipCode,
-                a.Reference,
+                a.Address.Street,
+                a.Address.Number,
+                a.Address.Complement,
+                a.Address.Neighborhood,
+                a.Address.City,
+                a.Address.State,
+                a.Address.ZipCode.Value,
+                a.Address.Reference,
                 a.IsDefault,
                 a.CreatedAt)).ToList(),
             customer.CreatedAt,

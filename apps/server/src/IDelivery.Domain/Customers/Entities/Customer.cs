@@ -1,4 +1,5 @@
 using IDelivery.SharedKernel.Common.Result;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Common.Entities;
 using IDelivery.Domain.Customers.Events;
 
@@ -14,8 +15,8 @@ public sealed class Customer : AggregateRoot
     public Guid TenantId { get; private set; }
     public Guid UserId { get; private set; }
     public string FullName { get; private set; } = null!;
-    public string Email { get; private set; } = null!;
-    public string? PhoneNumber { get; private set; }
+    public Email Email { get; private set; } = null!;
+    public PhoneNumber? PhoneNumber { get; private set; }
     public string? Notes { get; private set; }
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -31,8 +32,8 @@ public sealed class Customer : AggregateRoot
         Guid tenantId,
         Guid userId,
         string fullName,
-        string email,
-        string? phoneNumber,
+        Email email,
+        PhoneNumber? phoneNumber,
         string? notes) : base(id)
     {
         TenantId = tenantId;
@@ -44,7 +45,7 @@ public sealed class Customer : AggregateRoot
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
 
-        AddDomainEvent(new CustomerCreatedDomainEvent(id, tenantId, userId, email));
+        AddDomainEvent(new CustomerCreatedDomainEvent(id, tenantId, userId, email.Value));
     }
 
     /// <summary>
@@ -54,8 +55,8 @@ public sealed class Customer : AggregateRoot
         Guid tenantId,
         Guid userId,
         string fullName,
-        string email,
-        string? phoneNumber = null,
+        Email email,
+        PhoneNumber? phoneNumber = null,
         string? notes = null)
     {
         if (tenantId == Guid.Empty)
@@ -70,19 +71,16 @@ public sealed class Customer : AggregateRoot
         if (fullName.Length > 200)
             return Result.Failure<Customer>(new Error("Customer.FullNameTooLong", "Nome completo deve ter no máximo 200 caracteres"));
 
-        if (string.IsNullOrWhiteSpace(email))
+        if (email is null)
             return Result.Failure<Customer>(new Error("Customer.EmailRequired", "Email é obrigatório"));
-
-        if (email.Length > 200)
-            return Result.Failure<Customer>(new Error("Customer.EmailTooLong", "Email deve ter no máximo 200 caracteres"));
 
         var customer = new Customer(
             Guid.NewGuid(),
             tenantId,
             userId,
             fullName.Trim(),
-            email.Trim().ToLowerInvariant(),
-            phoneNumber?.Trim(),
+            email,
+            phoneNumber,
             notes?.Trim());
 
         return Result.Success(customer);
@@ -93,8 +91,8 @@ public sealed class Customer : AggregateRoot
     /// </summary>
     public Result UpdateProfile(
         string fullName,
-        string email,
-        string? phoneNumber,
+        Email email,
+        PhoneNumber? phoneNumber,
         string? notes)
     {
         if (string.IsNullOrWhiteSpace(fullName))
@@ -103,15 +101,12 @@ public sealed class Customer : AggregateRoot
         if (fullName.Length > 200)
             return Result.Failure(new Error("Customer.FullNameTooLong", "Nome completo deve ter no máximo 200 caracteres"));
 
-        if (string.IsNullOrWhiteSpace(email))
+        if (email is null)
             return Result.Failure(new Error("Customer.EmailRequired", "Email é obrigatório"));
 
-        if (email.Length > 200)
-            return Result.Failure(new Error("Customer.EmailTooLong", "Email deve ter no máximo 200 caracteres"));
-
         FullName = fullName.Trim();
-        Email = email.Trim().ToLowerInvariant();
-        PhoneNumber = phoneNumber?.Trim();
+        Email = email;
+        PhoneNumber = phoneNumber;
         Notes = notes?.Trim();
         UpdatedAt = DateTime.UtcNow;
 

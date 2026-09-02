@@ -1,4 +1,5 @@
 using IDelivery.SharedKernel.Common.Result;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Common.Entities;
 
 namespace IDelivery.Domain.Orders.Entities;
@@ -12,8 +13,7 @@ public sealed class OrderItem : Entity
     public Guid OrderId { get; private set; }
     public Guid ProductId { get; private set; }
     public string ProductName { get; private set; } = null!;
-    public decimal UnitPrice { get; private set; }
-    public string Currency { get; private set; } = null!;
+    public Money UnitPrice { get; private set; } = null!;
     public int Quantity { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
@@ -24,15 +24,13 @@ public sealed class OrderItem : Entity
         Guid orderId,
         Guid productId,
         string productName,
-        decimal unitPrice,
-        string currency,
+        Money unitPrice,
         int quantity) : base(id)
     {
         OrderId = orderId;
         ProductId = productId;
         ProductName = productName;
         UnitPrice = unitPrice;
-        Currency = currency;
         Quantity = quantity;
         CreatedAt = DateTime.UtcNow;
     }
@@ -44,8 +42,7 @@ public sealed class OrderItem : Entity
         Guid orderId,
         Guid productId,
         string productName,
-        decimal unitPrice,
-        string currency,
+        Money unitPrice,
         int quantity)
     {
         if (orderId == Guid.Empty)
@@ -60,14 +57,8 @@ public sealed class OrderItem : Entity
         if (productName.Length > 200)
             return Result.Failure<OrderItem>(new Error("OrderItem.ProductNameTooLong", "Nome do produto deve ter no máximo 200 caracteres"));
 
-        if (unitPrice < 0)
+        if (unitPrice.Amount < 0)
             return Result.Failure<OrderItem>(new Error("OrderItem.InvalidPrice", "Preço não pode ser negativo"));
-
-        if (string.IsNullOrWhiteSpace(currency))
-            return Result.Failure<OrderItem>(new Error("OrderItem.CurrencyRequired", "Moeda é obrigatória"));
-
-        if (currency.Length != 3)
-            return Result.Failure<OrderItem>(new Error("OrderItem.InvalidCurrency", "Moeda deve ter 3 caracteres"));
 
         if (quantity <= 0)
             return Result.Failure<OrderItem>(new Error("OrderItem.InvalidQuantity", "Quantidade deve ser maior que zero"));
@@ -78,7 +69,6 @@ public sealed class OrderItem : Entity
             productId,
             productName.Trim(),
             unitPrice,
-            currency.ToUpperInvariant(),
             quantity);
 
         return Result.Success(item);
@@ -87,8 +77,5 @@ public sealed class OrderItem : Entity
     /// <summary>
     /// Retorna o subtotal do item (preço * quantidade).
     /// </summary>
-    public decimal GetSubtotal()
-    {
-        return UnitPrice * Quantity;
-    }
+    public Money Subtotal => UnitPrice.Multiply(Quantity);
 }

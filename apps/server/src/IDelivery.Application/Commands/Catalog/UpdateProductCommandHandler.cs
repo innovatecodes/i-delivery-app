@@ -1,5 +1,6 @@
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Commands.Catalog;
@@ -22,11 +23,16 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
         if (await _productRepository.ExistsByNameAsync(product.TenantId, command.Name, command.Id, cancellationToken))
             return Result.Failure(new Error("Product.NameAlreadyExists", "Já existe um produto com este nome"));
 
+        var priceResult = Money.Create(command.Price, command.Currency);
+        if (priceResult.IsFailure)
+            return Result.Failure(priceResult.Error);
+
+        var price = priceResult.Value;
+
         var updateResult = product.UpdateDetails(
             command.Name,
             command.Description,
-            command.Price,
-            command.Currency,
+            price,
             command.CategoryId,
             command.ImageUrl,
             command.SortOrder);

@@ -5,6 +5,7 @@ using IDelivery.Domain.Users.Events;
 using IDelivery.Domain.Common.Entities;
 using IDelivery.Domain.Common.ValueObjects;
 
+
 namespace IDelivery.Domain.Users.Entities;
 
 /// <summary>
@@ -14,10 +15,10 @@ namespace IDelivery.Domain.Users.Entities;
 /// </summary>
 public sealed class User : AggregateRoot
 {
-    public Email Email { get; private set; } = null!;
+    public Email Email { get; private set; } 
     public string? PasswordHash { get; private set; }
     public string FullName { get; private set; } = null!;
-    public string? PhoneNumber { get; private set; }
+    public PhoneNumber? PhoneNumber { get; private set; }
     public Role Role { get; private set; }
     public Guid? TenantId { get; private set; }
     public UserStatus Status { get; private set; }
@@ -39,7 +40,7 @@ public sealed class User : AggregateRoot
         string fullName,
         Role role,
         Guid? tenantId = null,
-        string? phoneNumber = null) : base(id)
+        PhoneNumber? phoneNumber = null) : base(id)
     {
         Email = email;
         PasswordHash = passwordHash;
@@ -57,14 +58,14 @@ public sealed class User : AggregateRoot
     /// Factory method para criar um novo usuário.
     /// </summary>
     public static Result<User> Create(
-        string email,
+        Email email,
         string? passwordHash,
         string fullName,
         Role role,
         Guid? tenantId = null,
-        string? phoneNumber = null)
+        PhoneNumber? phoneNumber = null)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (email is null)
             return Result.Failure<User>(new Error("User.EmailRequired", "Email é obrigatório"));
 
         if (string.IsNullOrWhiteSpace(fullName))
@@ -81,12 +82,12 @@ public sealed class User : AggregateRoot
 
         var user = new User(
             Guid.NewGuid(),
-            Email.Create(email),
+            email,
             passwordHash,
             fullName.Trim(),
             role,
             tenantId,
-            phoneNumber?.Trim());
+            phoneNumber);
 
         return Result.Success(user);
     }
@@ -140,7 +141,7 @@ public sealed class User : AggregateRoot
     /// <summary>
     /// Atualiza o perfil do usuário.
     /// </summary>
-    public Result UpdateProfile(string fullName, string? phoneNumber)
+    public Result UpdateProfile(string fullName, PhoneNumber? phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(fullName))
             return Result.Failure(new Error("User.FullNameRequired", "Nome completo é obrigatório"));
@@ -149,10 +150,10 @@ public sealed class User : AggregateRoot
             return Result.Failure(new Error("User.FullNameTooLong", "Nome completo deve ter no máximo 200 caracteres"));
 
         FullName = fullName.Trim();
-        PhoneNumber = phoneNumber?.Trim();
+        PhoneNumber = phoneNumber;
         UpdatedAt = DateTime.UtcNow;
 
-        AddDomainEvent(new UserProfileUpdatedDomainEvent(Id, FullName, PhoneNumber));
+        AddDomainEvent(new UserProfileUpdatedDomainEvent(Id, FullName, PhoneNumber?.ToString()));
 
         return Result.Success();
     }

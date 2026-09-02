@@ -1,7 +1,7 @@
 using IDelivery.Application.Abstractions.Events;
+using IDelivery.Application.Abstractions.Messaging;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Application.Abstractions.Security;
-using IDelivery.Application.Abstractions.Services;
 using IDelivery.Domain.Users.Events;
 
 namespace IDelivery.Infrastructure.Events.Handlers;

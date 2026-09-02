@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using IDelivery.Domain.Common.Exceptions;
+using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Domain.Common.ValueObjects;
 
@@ -47,28 +47,30 @@ public sealed class PhoneNumber : ValueObject
     // Construtor para EF Core
     private PhoneNumber() { }
 
-    private PhoneNumber(string phone)
+    private PhoneNumber(string normalized)
+    {
+        Value = $"{CountryCode}{normalized}";
+    }
+
+    public static Result<PhoneNumber> Create(string phone)
     {
         if (string.IsNullOrWhiteSpace(phone))
-            throw new DomainException("O número de telefone não pode ser vazio");
+            return Result.Failure<PhoneNumber>(new Error("PhoneNumber.Empty", "O número de telefone não pode ser vazio"));
 
         var isFormatted = FormattedPhoneRegex.IsMatch(phone);
         var isUnformatted = UnformattedPhoneRegex.IsMatch(phone);
 
         if (!isFormatted && !isUnformatted)
-            throw new DomainException(
-                "O número de telefone deve estar no formato (43) 99999-9999 ou 43999999999 para celular, e (43) 3333-3333 ou 4333333333 para telefone fixo");
+            return Result.Failure<PhoneNumber>(new Error("PhoneNumber.InvalidFormat", "O número de telefone deve estar no formato (43) 99999-9999 ou 43999999999 para celular, e (43) 3333-3333 ou 4333333333 para telefone fixo"));
 
         var normalized = Regex.Replace(phone, @"[\s()-]", "");
         var areaCode = normalized[..2];
 
         if (!ValidAreaCodes.Contains(areaCode))
-            throw new DomainException($"O DDD '{areaCode}' não é um DDD válido no Brasil");
+            return Result.Failure<PhoneNumber>(new Error("PhoneNumber.InvalidAreaCode", $"O DDD '{areaCode}' não é um DDD válido no Brasil"));
 
-        Value = $"{CountryCode}{normalized}";
+        return Result.Success(new PhoneNumber(normalized));
     }
-
-    public static PhoneNumber Create(string phone) => new(phone);
 
     protected override IEnumerable<object?> GetEqualityComponents()
     {

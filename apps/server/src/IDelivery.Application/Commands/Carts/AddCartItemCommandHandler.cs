@@ -2,6 +2,7 @@ using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Domain.Carts.Entities;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Commands.Carts;
@@ -49,11 +50,16 @@ public sealed class AddCartItemCommandHandler : ICommandHandler<AddCartItemComma
             await _cartRepository.AddAsync(cart, cancellationToken);
         }
 
+        var unitPriceResult = Money.Create(command.UnitPrice, command.Currency);
+        if (unitPriceResult.IsFailure)
+            return Result.Failure(unitPriceResult.Error);
+
+        var unitPrice = unitPriceResult.Value;
+
         var addResult = cart.AddItem(
             command.ProductId,
             command.ProductName,
-            command.UnitPrice,
-            command.Currency,
+            unitPrice,
             command.Quantity);
 
         if (addResult.IsFailure)

@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using IDelivery.Domain.Common.Exceptions;
+using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Domain.Common.ValueObjects;
 
@@ -19,25 +19,26 @@ public sealed class Cnpj : ValueObject
     // Construtor para EF Core
     private Cnpj() { }
 
-    private Cnpj(string value)
+    private Cnpj(string digitsOnly)
     {
-        DigitsOnly = CleanCnpj(value);
-
-        if (!CnpjRegex.IsMatch(DigitsOnly))
-            throw new DomainException("CNPJ deve conter exatamente 14 dígitos");
-
-        if (!IsValidCnpj(DigitsOnly))
-            throw new DomainException("CNPJ inválido");
-
-        Value = FormatCnpj(DigitsOnly);
+        DigitsOnly = digitsOnly;
+        Value = FormatCnpj(digitsOnly);
     }
 
-    public static Cnpj Create(string value)
+    public static Result<Cnpj> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException("O CNPJ não pode ser vazio");
+            return Result.Failure<Cnpj>(new Error("Cnpj.Empty", "O CNPJ não pode ser vazio"));
 
-        return new Cnpj(value);
+        var digitsOnly = CleanCnpj(value);
+
+        if (!CnpjRegex.IsMatch(digitsOnly))
+            return Result.Failure<Cnpj>(new Error("Cnpj.InvalidLength", "CNPJ deve conter exatamente 14 dígitos"));
+
+        if (!IsValidCnpj(digitsOnly))
+            return Result.Failure<Cnpj>(new Error("Cnpj.InvalidCheckDigits", "CNPJ inválido"));
+
+        return Result.Success(new Cnpj(digitsOnly));
     }
 
     private static string CleanCnpj(string cnpj) => Regex.Replace(cnpj, @"[^\d]", "");
@@ -76,9 +77,6 @@ public sealed class Cnpj : ValueObject
     {
         yield return DigitsOnly;
     }
-
-    public static implicit operator string?(Cnpj? cnpj) => cnpj?.Value;
-    public static explicit operator Cnpj(string value) => Create(value);
 
     public override string ToString() => Value;
 }

@@ -1,13 +1,19 @@
 using IDelivery.Application.Abstractions.CQRS;
-using IDelivery.Domain.Orders.Entities;
 
 namespace IDelivery.Application.Commands.Orders;
 
 public sealed record CreateOrderCommand(
-    List<CreateOrderItemDto> Items,
+    IReadOnlyList<CreateOrderItemDto> Items,
     decimal DeliveryFee,
     string Currency,
-    string DeliveryAddress,
+    string DeliveryStreet,
+    string DeliveryNumber,
+    string? DeliveryComplement,
+    string DeliveryNeighborhood,
+    string DeliveryCity,
+    string DeliveryState,
+    string DeliveryZipCode,
+    string? DeliveryReference,
     decimal? DeliveryDistanceKm) : ICommand<Guid>;
 
 public sealed record CreateOrderItemDto(

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace IDelivery.Application.Abstractions.Security;
+namespace IDelivery.Application.Abstractions.Authentication;
 
 public interface IJwtTokenService
 {

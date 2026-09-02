@@ -1,4 +1,5 @@
 using IDelivery.SharedKernel.Common.Result;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Common.Entities;
 
 namespace IDelivery.Domain.Carts.Entities;
@@ -12,8 +13,7 @@ public sealed class CartItem : Entity
     public Guid CartId { get; private set; }
     public Guid ProductId { get; private set; }
     public string ProductName { get; private set; } = null!;
-    public decimal UnitPrice { get; private set; }
-    public string Currency { get; private set; } = null!;
+    public Money UnitPrice { get; private set; } = null!;
     public int Quantity { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
@@ -25,15 +25,13 @@ public sealed class CartItem : Entity
         Guid cartId,
         Guid productId,
         string productName,
-        decimal unitPrice,
-        string currency,
+        Money unitPrice,
         int quantity) : base(id)
     {
         CartId = cartId;
         ProductId = productId;
         ProductName = productName;
         UnitPrice = unitPrice;
-        Currency = currency;
         Quantity = quantity;
         CreatedAt = DateTime.UtcNow;
     }
@@ -45,8 +43,7 @@ public sealed class CartItem : Entity
         Guid cartId,
         Guid productId,
         string productName,
-        decimal unitPrice,
-        string currency,
+        Money unitPrice,
         int quantity = 1)
     {
         if (cartId == Guid.Empty)
@@ -58,11 +55,8 @@ public sealed class CartItem : Entity
         if (string.IsNullOrWhiteSpace(productName))
             return Result.Failure<CartItem>(new Error("CartItem.ProductNameRequired", "Nome do produto é obrigatório"));
 
-        if (unitPrice < 0)
+        if (unitPrice.Amount < 0)
             return Result.Failure<CartItem>(new Error("CartItem.InvalidPrice", "Preço não pode ser negativo"));
-
-        if (string.IsNullOrWhiteSpace(currency))
-            return Result.Failure<CartItem>(new Error("CartItem.CurrencyRequired", "Moeda é obrigatória"));
 
         if (quantity <= 0)
             return Result.Failure<CartItem>(new Error("CartItem.InvalidQuantity", "Quantidade deve ser maior que zero"));
@@ -73,7 +67,6 @@ public sealed class CartItem : Entity
             productId,
             productName.Trim(),
             unitPrice,
-            currency,
             quantity);
 
         return Result.Success(item);
@@ -102,8 +95,5 @@ public sealed class CartItem : Entity
     /// <summary>
     /// Retorna o subtotal do item (preço * quantidade).
     /// </summary>
-    public decimal GetSubtotal()
-    {
-        return UnitPrice * Quantity;
-    }
+    public Money Subtotal => UnitPrice.Multiply(Quantity);
 }

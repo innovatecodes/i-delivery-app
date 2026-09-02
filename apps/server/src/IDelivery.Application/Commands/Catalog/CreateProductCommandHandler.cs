@@ -2,6 +2,7 @@ using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Abstractions.CQRS;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Domain.Catalog.Entities;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Application.Commands.Catalog;
@@ -28,11 +29,16 @@ public sealed class CreateProductCommandHandler : ICommandHandler<CreateProductC
         if (await _productRepository.ExistsByNameAsync(tenantId.Value, command.Name, cancellationToken: cancellationToken))
             return Result.Failure<Guid>(new Error("Product.NameAlreadyExists", "Já existe um produto com este nome"));
 
+        var priceResult = Money.Create(command.Price, command.Currency);
+        if (priceResult.IsFailure)
+            return Result.Failure<Guid>(priceResult.Error);
+
+        var price = priceResult.Value;
+
         var productResult = Product.Create(
             tenantId.Value,
             command.Name,
-            command.Price,
-            command.Currency,
+            price,
             command.CategoryId,
             command.Description,
             command.ImageUrl,

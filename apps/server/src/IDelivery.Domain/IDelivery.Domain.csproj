@@ -13,9 +13,5 @@
   <ItemGroup>
     <ProjectReference Include="..\IDelivery.SharedKernel\IDelivery.SharedKernel.csproj" />
   </ItemGroup>
-	
-  <ItemGroup>
-    <Folder Include="Users\ValueObjects\" />
-  </ItemGroup>
 
 </Project>

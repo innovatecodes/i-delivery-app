@@ -1,4 +1,5 @@
 using IDelivery.SharedKernel.Common.Result;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Common.Entities;
 using IDelivery.Domain.Carts.Events;
 
@@ -61,8 +62,7 @@ public sealed class Cart : AggregateRoot
     public Result AddItem(
         Guid productId,
         string productName,
-        decimal unitPrice,
-        string currency,
+        Money unitPrice,
         int quantity = 1)
     {
         if (quantity <= 0)
@@ -74,21 +74,21 @@ public sealed class Cart : AggregateRoot
         if (string.IsNullOrWhiteSpace(productName))
             return Result.Failure(new Error("Cart.ProductNameRequired", "Nome do produto é obrigatório"));
 
-        if (unitPrice < 0)
+        if (unitPrice.Amount < 0)
             return Result.Failure(new Error("Cart.InvalidPrice", "Preço não pode ser negativo"));
-
-        if (string.IsNullOrWhiteSpace(currency))
-            return Result.Failure(new Error("Cart.CurrencyRequired", "Moeda é obrigatória"));
 
         var existingItem = _items.FirstOrDefault(i => i.ProductId == productId);
 
         if (existingItem is not null)
         {
+            if (existingItem.UnitPrice.Currency != unitPrice.Currency)
+                return Result.Failure(new Error("Cart.CurrencyMismatch", "Não é possível adicionar item com moeda diferente"));
+
             existingItem.IncreaseQuantity(quantity);
         }
         else
         {
-            var itemResult = CartItem.Create(Id, productId, productName, unitPrice, currency, quantity);
+            var itemResult = CartItem.Create(Id, productId, productName, unitPrice, quantity);
             if (itemResult.IsFailure)
                 return Result.Failure(itemResult.Error);
 
@@ -155,9 +155,12 @@ public sealed class Cart : AggregateRoot
     /// <summary>
     /// Retorna o total do carrinho.
     /// </summary>
-    public decimal GetTotal()
+    public Money GetTotal()
     {
-        return _items.Sum(i => i.UnitPrice * i.Quantity);
+        if (_items.Count == 0)
+            return Money.Zero("BRL");
+
+        return _items.Select(i => i.Subtotal).Aggregate(Money.Zero(_items.First().UnitPrice.Currency), (acc, m) => acc.Add(m));
     }
 
     /// <summary>

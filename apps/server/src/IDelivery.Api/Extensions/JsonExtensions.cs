@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using IDelivery.Api.Converters;
 
 namespace IDelivery.Api.Extensions
 {
@@ -17,6 +18,13 @@ namespace IDelivery.Api.Extensions
 
                 // Serializa enums como texto (ex: "SuperAdmin" em vez de "1")
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
+                // Converters para Value Objects
+                options.JsonSerializerOptions.Converters.Add(new EmailJsonConverter());
+                options.JsonSerializerOptions.Converters.Add(new PhoneNumberJsonConverter());
+                options.JsonSerializerOptions.Converters.Add(new MoneyJsonConverter());
+                options.JsonSerializerOptions.Converters.Add(new ZipCodeJsonConverter());
+                options.JsonSerializerOptions.Converters.Add(new AddressJsonConverter());
 
                 // Evita loops em referências circulares
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;

@@ -1,5 +1,6 @@
 using IDelivery.Domain.Catalog.Entities;
-using Xunit;
+using IDelivery.Domain.Common.ValueObjects;
+using IDelivery.Domain.Common.Exceptions;
 using FluentAssertions;
 
 namespace IDelivery.UnitTests.Domain;
@@ -14,8 +15,7 @@ public class ProductTests
         var result = Product.Create(
             _tenantId,
             "Coca-Cola 350ml",
-            5.99m,
-            "BRL",
+            Money.Create(5.99m, "BRL").Value,
             null,
             "Refrigerante lata",
             null,
@@ -39,8 +39,7 @@ public class ProductTests
         var result = Product.Create(
             Guid.Empty,
             "Coca-Cola",
-            5.99m,
-            "BRL");
+            Money.Create(5.99m, "BRL").Value);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -51,8 +50,7 @@ public class ProductTests
         var result = Product.Create(
             _tenantId,
             "",
-            5.99m,
-            "BRL");
+            Money.Create(5.99m, "BRL").Value);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -63,8 +61,7 @@ public class ProductTests
         var result = Product.Create(
             _tenantId,
             new string('A', 201),
-            5.99m,
-            "BRL");
+            Money.Create(5.99m, "BRL").Value);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -72,39 +69,32 @@ public class ProductTests
     [Fact]
     public void Create_WithNegativePrice_ShouldFail()
     {
-        var result = Product.Create(
-            _tenantId,
-            "Product",
-            -1m,
-            "BRL");
+        var result = Money.Create(-1m, "BRL");
 
         result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Money.NegativeAmount");
     }
 
     [Fact]
     public void Create_WithEmptyCurrency_ShouldFail()
     {
-        var result = Product.Create(
-            _tenantId,
-            "Product",
-            5.99m,
-            "");
+        var result = Money.Create(5.99m, "");
 
         result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Money.EmptyCurrency");
     }
 
     [Fact]
     public void UpdateDetails_WithValidData_ShouldUpdate()
     {
-        var createResult = Product.Create(_tenantId, "Original", 10m, "BRL");
+        var createResult = Product.Create(_tenantId, "Original", Money.Create(10m, "BRL").Value);
         Assert.True(createResult.IsSuccess);
         var product = createResult.Value;
 
         var updateResult = product.UpdateDetails(
             "Updated",
             "New description",
-            15.99m,
-            "BRL",
+            Money.Create(15.99m, "BRL").Value,
             null,
             null,
             2);
@@ -119,18 +109,18 @@ public class ProductTests
     [Fact]
     public void UpdateDetails_WithEmptyName_ShouldFail()
     {
-        var createResult = Product.Create(_tenantId, "Original", 10m, "BRL");
+        var createResult = Product.Create(_tenantId, "Original", Money.Create(10m, "BRL").Value);
         Assert.True(createResult.IsSuccess);
         var product = createResult.Value;
 
-        var updateResult = product.UpdateDetails("", null, 10m, "BRL", null, null, 0);
+        var updateResult = product.UpdateDetails("", null, Money.Create(10m, "BRL").Value, null, null, 0);
         updateResult.IsFailure.Should().BeTrue();
     }
 
     [Fact]
     public void Activate_WhenInactive_ShouldActivate()
     {
-        var createResult = Product.Create(_tenantId, "Test", 10m, "BRL");
+        var createResult = Product.Create(_tenantId, "Test", Money.Create(10m, "BRL").Value);
         Assert.True(createResult.IsSuccess);
         var product = createResult.Value;
 
@@ -145,7 +135,7 @@ public class ProductTests
     [Fact]
     public void Deactivate_WhenActive_ShouldDeactivate()
     {
-        var createResult = Product.Create(_tenantId, "Test", 10m, "BRL");
+        var createResult = Product.Create(_tenantId, "Test", Money.Create(10m, "BRL").Value);
         Assert.True(createResult.IsSuccess);
         var product = createResult.Value;
 
@@ -157,7 +147,7 @@ public class ProductTests
     [Fact]
     public void MarkAsAvailable_WhenUnavailable_ShouldMarkAsAvailable()
     {
-        var createResult = Product.Create(_tenantId, "Test", 10m, "BRL");
+        var createResult = Product.Create(_tenantId, "Test", Money.Create(10m, "BRL").Value);
         Assert.True(createResult.IsSuccess);
         var product = createResult.Value;
 
@@ -172,7 +162,7 @@ public class ProductTests
     [Fact]
     public void MarkAsUnavailable_WhenAvailable_ShouldMarkAsUnavailable()
     {
-        var createResult = Product.Create(_tenantId, "Test", 10m, "BRL");
+        var createResult = Product.Create(_tenantId, "Test", Money.Create(10m, "BRL").Value);
         Assert.True(createResult.IsSuccess);
         var product = createResult.Value;
 
@@ -184,7 +174,7 @@ public class ProductTests
     [Fact]
     public void ChangeCategory_WithValidCategoryId_ShouldChange()
     {
-        var createResult = Product.Create(_tenantId, "Test", 10m, "BRL");
+        var createResult = Product.Create(_tenantId, "Test", Money.Create(10m, "BRL").Value);
         Assert.True(createResult.IsSuccess);
         var product = createResult.Value;
 

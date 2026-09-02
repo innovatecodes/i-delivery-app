@@ -36,8 +36,8 @@ public sealed class GetOrdersQueryHandler : IQueryHandler<GetOrdersQuery, PagedR
             o.Id,
             o.CustomerId,
             o.State,
-            o.TotalAmount,
-            o.Currency,
+            o.TotalAmount.Amount,
+            o.Subtotal.Currency,
             o.CreatedAt,
             o.CompletedAt)).ToList();
 

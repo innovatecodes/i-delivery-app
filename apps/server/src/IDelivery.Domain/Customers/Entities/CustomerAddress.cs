@@ -1,4 +1,5 @@
 using IDelivery.SharedKernel.Common.Result;
+using IDelivery.Domain.Common.ValueObjects;
 using IDelivery.Domain.Common.Entities;
 
 namespace IDelivery.Domain.Customers.Entities;
@@ -6,19 +7,13 @@ namespace IDelivery.Domain.Customers.Entities;
 /// <summary>
 /// Entidade que representa um endereço do cliente.
 /// Não é Aggregate Root — é gerenciada pelo Customer.
+/// Utiliza o Value Object Address do kernel compartilhado.
 /// </summary>
 public sealed class CustomerAddress : Entity
 {
     public Guid CustomerId { get; private set; }
     public string Label { get; private set; } = null!;
-    public string Street { get; private set; } = null!;
-    public string Number { get; private set; } = null!;
-    public string? Complement { get; private set; }
-    public string Neighborhood { get; private set; } = null!;
-    public string City { get; private set; } = null!;
-    public string State { get; private set; } = null!;
-    public string ZipCode { get; private set; } = null!;
-    public string? Reference { get; private set; }
+    public Address Address { get; private set; } = null!;
     public bool IsDefault { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
@@ -29,26 +24,12 @@ public sealed class CustomerAddress : Entity
         Guid id,
         Guid customerId,
         string label,
-        string street,
-        string number,
-        string? complement,
-        string neighborhood,
-        string city,
-        string state,
-        string zipCode,
-        string? reference,
+        Address address,
         bool isDefault) : base(id)
     {
         CustomerId = customerId;
         Label = label;
-        Street = street;
-        Number = number;
-        Complement = complement;
-        Neighborhood = neighborhood;
-        City = city;
-        State = state;
-        ZipCode = zipCode;
-        Reference = reference;
+        Address = address;
         IsDefault = isDefault;
         CreatedAt = DateTime.UtcNow;
     }
@@ -114,21 +95,20 @@ public sealed class CustomerAddress : Entity
         if (zipCode.Length > 10)
             return Result.Failure<CustomerAddress>(new Error("CustomerAddress.ZipCodeTooLong", "CEP deve ter no máximo 10 caracteres"));
 
-        var address = new CustomerAddress(
+        var addressResult = Address.Create(street, number, complement, neighborhood, city, state, zipCode, reference);
+        if (addressResult.IsFailure)
+            return Result.Failure<CustomerAddress>(addressResult.Error);
+
+        var address = addressResult.Value;
+
+        var customerAddress = new CustomerAddress(
             Guid.NewGuid(),
             customerId,
             label.Trim(),
-            street.Trim(),
-            number.Trim(),
-            complement?.Trim(),
-            neighborhood.Trim(),
-            city.Trim(),
-            state.Trim().ToUpperInvariant(),
-            zipCode.Trim(),
-            reference?.Trim(),
+            address,
             isDefault);
 
-        return Result.Success(address);
+        return Result.Success(customerAddress);
     }
 
     /// <summary>
@@ -166,15 +146,14 @@ public sealed class CustomerAddress : Entity
         if (string.IsNullOrWhiteSpace(zipCode))
             return Result.Failure(new Error("CustomerAddress.ZipCodeRequired", "CEP é obrigatório"));
 
+        var addressResult = Address.Create(street, number, complement, neighborhood, city, state, zipCode, reference);
+        if (addressResult.IsFailure)
+            return Result.Failure(addressResult.Error);
+
+        var newAddress = addressResult.Value;
+
         Label = label.Trim();
-        Street = street.Trim();
-        Number = number.Trim();
-        Complement = complement?.Trim();
-        Neighborhood = neighborhood.Trim();
-        City = city.Trim();
-        State = state.Trim().ToUpperInvariant();
-        ZipCode = zipCode.Trim();
-        Reference = reference?.Trim();
+        Address = newAddress;
         UpdatedAt = DateTime.UtcNow;
 
         return Result.Success();

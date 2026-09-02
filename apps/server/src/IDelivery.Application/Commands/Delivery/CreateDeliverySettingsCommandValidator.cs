@@ -39,7 +39,6 @@ public sealed class CreateDeliverySettingsCommandValidator : AbstractValidator<C
                 .GreaterThan(0).WithMessage("Taxa máxima deve ser maior que zero");
         });
 
-        // Custom validation: MaximumFee > MinimumFee when both are set
         RuleFor(x => x)
             .Must(x => !x.MinimumFee.HasValue || !x.MaximumFee.HasValue || x.MaximumFee >= x.MinimumFee)
             .WithMessage("Taxa máxima deve ser maior ou igual à taxa mínima");

@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using IDelivery.Domain.Common.Exceptions;
+using IDelivery.SharedKernel.Common.Result;
 
 namespace IDelivery.Domain.Common.ValueObjects;
 
@@ -19,20 +19,24 @@ public sealed class ZipCode : ValueObject
     // Construtor para EF Core
     private ZipCode() { }
 
-    private ZipCode(string value)
+    private ZipCode(string digitsOnly)
+    {
+        DigitsOnly = digitsOnly;
+        Value = FormatZipCode(digitsOnly);
+    }
+
+    public static Result<ZipCode> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException("O CEP não pode ser vazio");
+            return Result.Failure<ZipCode>(new Error("ZipCode.Empty", "O CEP não pode ser vazio"));
 
         var cleaned = CleanZipCode(value);
         if (!ZipCodeRegex.IsMatch(cleaned))
-            throw new DomainException("Formato de CEP brasileiro inválido (esperado: 00000-000)");
+            return Result.Failure<ZipCode>(new Error("ZipCode.InvalidFormat", "Formato de CEP brasileiro inválido (esperado: 00000-000)"));
 
-        DigitsOnly = cleaned.Replace("-", "");
-        Value = FormatZipCode(DigitsOnly);
+        var digitsOnly = cleaned.Replace("-", "");
+        return Result.Success(new ZipCode(digitsOnly));
     }
-
-    public static ZipCode Create(string value) => new(value);
 
     private static string CleanZipCode(string zipCode) => Regex.Replace(zipCode, @"[^\d]", "");
 
@@ -42,9 +46,6 @@ public sealed class ZipCode : ValueObject
     {
         yield return DigitsOnly;
     }
-
-    public static implicit operator string(ZipCode zipCode) => zipCode.Value;
-    public static explicit operator ZipCode(string value) => Create(value);
 
     public override string ToString() => Value;
 }
