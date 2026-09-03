@@ -6,6 +6,7 @@ using IDelivery.Domain.Carts.Entities;
 using IDelivery.Domain.Customers.Entities;
 using IDelivery.Domain.Delivery.Entities;
 using IDelivery.Domain.Orders.Entities;
+using IDelivery.Domain.Payments.Entities;
 using IDelivery.Domain.Common.DomainEvents;
 using IDelivery.Domain.Common.Entities;
 using IDelivery.Application.Abstractions.Events;
@@ -35,6 +36,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<DeliverySettings> DeliverySettings => Set<DeliverySettings>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Payment> Payments => Set<Payment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

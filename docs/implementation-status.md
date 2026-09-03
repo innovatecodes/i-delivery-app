@@ -1,7 +1,7 @@
 # Implementation Status
 
 ## Última análise
-Data: 2026-09-03 (atualizado refatoração CQRS/Events/Notifications)
+Data: 2026-09-03 (atualizado B13 Pagamento V1)
 
 ## Backend
 | Etapa | Status | Evidências | Próxima ação |
@@ -18,7 +18,7 @@ Data: 2026-09-03 (atualizado refatoração CQRS/Events/Notifications)
 | B10 — Customer e endereço | CONCLUÍDA | Domain: Customer aggregate (Customer + CustomerAddress), 4 domain events (Created, Updated, AddressAdded, AddressRemoved). Application: ICustomerRepository, Create/Update/Delete/AddAddress/RemoveAddress/SetDefaultAddress commands + handlers + validators, GetCustomer query + handler. Infrastructure: CustomerConfiguration (OwnsOne Email/PhoneNumber), CustomerAddressConfiguration, CustomerRepository, ApplicationDbContext atualizado com Customers/CustomerAddresses DbSets, Migration AddCustomerTables. DI registrations atualizados. Tests: 154 unitários passando. | — |
 | B11 — Delivery settings | CONCLUÍDA | Domain: DeliverySettings aggregate, DeliveryFeeType enum (Free, FreeAboveAmount, Fixed, PerDistance), 2 domain events (Created, Updated), CalculateFee method. Application: IDeliverySettingsRepository, Create/Update/Delete commands + handlers + validators, GetDeliverySettings query + handler. Infrastructure: DeliverySettingsConfiguration (OwnsOne 5 Money properties), DeliverySettingsRepository, ApplicationDbContext atualizado com DeliverySettings DbSet, Migration AddDeliverySettingsTable. DI registrations atualizados. Tests: 154 unitários passando. | — |
 | B12 — Pedido e checkout | CONCLUÍDA | Domain: Order aggregate (Order + OrderItem snapshot), OrderState enum (Pending→Confirmed→Preparing→ReadyForDelivery→OutForDelivery→Delivered|DeliveryFailed|Cancelled), DeliveryFailureReason enum, 5 domain events (Created, StatusChanged, Delivered, DeliveryFailed, Cancelled). Transições controladas com autoridade: Deliver/FailDelivery só pelo entregador atribuído; Cancel até ReadyForDelivery por Tenant/Cliente/Sistema. Application: IOrderRepository, Create/Confirm/StartPreparing/MarkReady/StartDelivery/Deliver/FailDelivery/Cancel commands + handlers + validators, GetOrder/GetOrders queries + handlers. Infrastructure: OrderConfiguration, OrderItemConfiguration, OrderRepository, ApplicationDbContext atualizado com Orders/OrderItems DbSets, Migration AddOrderTables. DI registrations atualizados. Tests: 154 unitários passando. | — |
-| B13 — Pagamento V1 | NÃO IMPLEMENTADA | — | — |
+| B13 — Pagamento V1 | CONCLUÍDA | Domain: Payment aggregate, PaymentMethod enum (Cash, CardOnDelivery), PaymentStatus enum (Pending, Paid, NotCollected), 2 domain events (Created, MarkedAsPaid). Application: IPaymentRepository, Create/MarkAsPaid/MarkAsNotCollected commands + handlers, GetPaymentByOrderId/GetPaymentById queries + handlers. Infrastructure: PaymentConfiguration (OwnsOne Money), PaymentRepository, ApplicationDbContext atualizado com Payments DbSet. Integração: OrderDeliveredPaymentHandler marca Payment como Paid quando Order.Deliver() é chamado. Abstração extensível para métodos futuros. Migration necessária: AddPaymentEntity. Tests: 188 unit + 35 integration. | — |
 | B14 — Gestão de pedidos | NÃO IMPLEMENTADA | — | — |
 | B15 — Delivery | NÃO IMPLEMENTADA | — | — |
 | B16 — Rastreamento | NÃO IMPLEMENTADA | — | — |
@@ -127,7 +127,7 @@ ForgotPasswordCommandHandler → user.RequestPasswordReset() → UserPasswordRes
 
 ## Testes
 - Backend build: OK (0 erros, warnings de nullable)
-- Backend tests: **168 unit + 35 integration** (todos passando)
+- Backend tests: **188 unit + 35 integration** (todos passando)
 
 ## Arquivos Criados/Alterados (Refatoração CQRS/Events/Notifications)
 
@@ -176,6 +176,34 @@ ForgotPasswordCommandHandler → user.RequestPasswordReset() → UserPasswordRes
 
 ### Movidos
 - `Infrastructure/Events/Handlers/UserRegisteredDomainEventHandler.cs` → `Application/Events/Handlers/`
+
+## Arquivos Criados (B13 — Pagamento V1)
+
+### Domain
+- `Domain/Payments/Entities/Payment.cs`
+- `Domain/Payments/Enums/PaymentMethod.cs`
+- `Domain/Payments/Enums/PaymentStatus.cs`
+- `Domain/Payments/Events/PaymentCreatedDomainEvent.cs`
+- `Domain/Payments/Events/PaymentMarkedAsPaidDomainEvent.cs`
+
+### Application
+- `Application/Abstractions/Persistence/IPaymentRepository.cs`
+- `Application/Commands/Payments/PaymentCommands.cs`
+- `Application/Commands/Payments/CreatePaymentCommandHandler.cs`
+- `Application/Commands/Payments/MarkPaymentAsPaidCommandHandler.cs`
+- `Application/Commands/Payments/MarkPaymentAsNotCollectedCommandHandler.cs`
+- `Application/Queries/Payments/PaymentQueries.cs`
+- `Application/Queries/Payments/GetPaymentByOrderIdQueryHandler.cs`
+- `Application/Queries/Payments/GetPaymentByIdQueryHandler.cs`
+- `Application/Events/Handlers/OrderDeliveredPaymentHandler.cs`
+
+### Infrastructure
+- `Infrastructure/Persistence/Configurations/PaymentConfiguration.cs`
+- `Infrastructure/Persistence/Repositories/PaymentRepository.cs`
+
+### Tests
+- `tests/IDelivery.UnitTests/Domain/PaymentTests.cs`
+- `tests/IDelivery.UnitTests/Application/Payments/PaymentHandlerTests.cs`
 
 ## Próxima etapa recomendada
 **B13 — Pagamento V1** ou **B19 — API e qualidade** (OpenAPI/Swagger, mais controllers)

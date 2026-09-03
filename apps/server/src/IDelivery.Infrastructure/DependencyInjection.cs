@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IDeliverySettingsRepository, DeliverySettingsRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
 
         // JwtOptions Authentication
         services.Configure<JwtOptions>(
