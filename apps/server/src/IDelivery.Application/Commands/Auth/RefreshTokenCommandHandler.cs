@@ -65,6 +65,8 @@ public sealed class RefreshTokenCommandHandler : ICommandHandler<RefreshTokenCom
 
         user.SetResetPasswordToken(newRefreshTokenHash, newRefreshTokenExpiresAt);
 
+        _userRepository.Update(user);
+
         var roles = new[] { user.Role.ToString() };
         var accessToken = _jwtTokenService.GenerateAccessToken(user.Id, user.TenantId, roles);
         var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(15);

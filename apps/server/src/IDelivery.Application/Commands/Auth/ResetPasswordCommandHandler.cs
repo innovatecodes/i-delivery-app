@@ -39,6 +39,11 @@ public sealed class ResetPasswordCommandHandler : ICommandHandler<ResetPasswordC
         var newPasswordHash = _passwordHasher.Hash(command.NewPassword);
         var result = user.ResetPassword(newPasswordHash);
 
+        if (result.IsSuccess)
+        {
+            _userRepository.Update(user);
+        }
+
         return result;
     }
 }

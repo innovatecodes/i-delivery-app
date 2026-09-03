@@ -186,7 +186,7 @@ public class DeleteCategoryCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithValidCommand_ShouldDeleteCategory()
+    public async Task Handle_WithValidCommand_ShouldDeactivateCategory()
     {
         var categoryResult = Category.Create(Guid.NewGuid(), "Bebidas", null, null, 0);
         Assert.True(categoryResult.IsSuccess);
@@ -202,7 +202,8 @@ public class DeleteCategoryCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        _mockCategoryRepository.Verify(x => x.DeleteAsync(category, It.IsAny<CancellationToken>()), Times.Once);
+        category.IsActive.Should().BeFalse();
+        _mockCategoryRepository.Verify(x => x.UpdateAsync(category, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

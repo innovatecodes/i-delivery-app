@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using IDelivery.Application.Abstractions.Events;
 using IDelivery.Domain.Common.DomainEvents;
@@ -7,6 +9,7 @@ namespace IDelivery.Infrastructure.Events;
 public class DomainEventDispatcher : IDomainEventDispatcher
 {
     private readonly IServiceProvider _serviceProvider;
+    private static readonly ConcurrentDictionary<Type, Type> HandlerTypeCache = new();
 
     public DomainEventDispatcher(IServiceProvider serviceProvider)
     {
@@ -15,17 +18,15 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 
     public async Task DispatchAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
-        var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEvent.GetType());
+        var handlerType = HandlerTypeCache.GetOrAdd(
+            domainEvent.GetType(),
+            t => typeof(IDomainEventHandler<>).MakeGenericType(t));
+
         var handlers = _serviceProvider.GetServices(handlerType);
 
         foreach (var handler in handlers)
         {
-            var method = handlerType.GetMethod("Handle");
-            if (method is not null)
-            {
-                var task = (Task)method.Invoke(handler, [domainEvent, cancellationToken])!;
-                await task;
-            }
+            await ((dynamic)handler).Handle((dynamic)domainEvent, cancellationToken);
         }
     }
 
@@ -37,4 +38,3 @@ public class DomainEventDispatcher : IDomainEventDispatcher
         }
     }
 }
-

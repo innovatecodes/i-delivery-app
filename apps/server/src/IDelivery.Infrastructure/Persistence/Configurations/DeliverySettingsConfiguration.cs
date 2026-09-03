@@ -19,25 +19,62 @@ public class DeliverySettingsConfiguration : IEntityTypeConfiguration<DeliverySe
             .HasConversion<int>()
             .IsRequired();
 
-        builder.Property(ds => ds.FixedFee)
-            .HasPrecision(18, 2)
-            .IsRequired();
+        builder.OwnsOne(ds => ds.FixedFee, feeBuilder =>
+        {
+            feeBuilder.Property(f => f.Amount)
+                .HasColumnName("fixed_fee")
+                .HasPrecision(18, 2)
+                .IsRequired();
 
-        builder.Property(ds => ds.FreeAboveAmount)
-            .HasPrecision(18, 2)
-            .IsRequired(false);
+            feeBuilder.Property(f => f.Currency)
+                .HasColumnName("fixed_fee_currency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
 
-        builder.Property(ds => ds.FeePerKm)
-            .HasPrecision(18, 2)
-            .IsRequired(false);
+        builder.OwnsOne(ds => ds.FreeAboveAmount, amountBuilder =>
+        {
+            amountBuilder.Property(a => a.Amount)
+                .HasColumnName("free_above_amount")
+                .HasPrecision(18, 2);
 
-        builder.Property(ds => ds.MinimumFee)
-            .HasPrecision(18, 2)
-            .IsRequired(false);
+            amountBuilder.Property(a => a.Currency)
+                .HasColumnName("free_above_amount_currency")
+                .HasMaxLength(3);
+        });
 
-        builder.Property(ds => ds.MaximumFee)
-            .HasPrecision(18, 2)
-            .IsRequired(false);
+        builder.OwnsOne(ds => ds.FeePerKm, feeBuilder =>
+        {
+            feeBuilder.Property(f => f.Amount)
+                .HasColumnName("fee_per_km")
+                .HasPrecision(18, 2);
+
+            feeBuilder.Property(f => f.Currency)
+                .HasColumnName("fee_per_km_currency")
+                .HasMaxLength(3);
+        });
+
+        builder.OwnsOne(ds => ds.MinimumFee, feeBuilder =>
+        {
+            feeBuilder.Property(f => f.Amount)
+                .HasColumnName("minimum_fee")
+                .HasPrecision(18, 2);
+
+            feeBuilder.Property(f => f.Currency)
+                .HasColumnName("minimum_fee_currency")
+                .HasMaxLength(3);
+        });
+
+        builder.OwnsOne(ds => ds.MaximumFee, feeBuilder =>
+        {
+            feeBuilder.Property(f => f.Amount)
+                .HasColumnName("maximum_fee")
+                .HasPrecision(18, 2);
+
+            feeBuilder.Property(f => f.Currency)
+                .HasColumnName("maximum_fee_currency")
+                .HasMaxLength(3);
+        });
 
         builder.Property(ds => ds.IsActive)
             .IsRequired();

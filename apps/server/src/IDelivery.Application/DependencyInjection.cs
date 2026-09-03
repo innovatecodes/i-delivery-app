@@ -1,18 +1,7 @@
+using System.Reflection;
 using IDelivery.Application.Abstractions.CQRS;
-using IDelivery.Application.Commands.Auth;
-using IDelivery.Application.Commands.Tenants;
-using IDelivery.Application.Commands.Catalog;
-using IDelivery.Application.Commands.Carts;
-using IDelivery.Application.Commands.Customers;
-using IDelivery.Application.Commands.Delivery;
-using IDelivery.Application.Commands.Orders;
-using IDelivery.Application.Queries.Tenants;
-using IDelivery.Application.Queries.Catalog;
-using IDelivery.Application.Queries.Carts;
-using IDelivery.Application.Queries.Customers;
-using IDelivery.Application.Queries.Delivery;
-using IDelivery.Application.Queries.Orders;
-using IDelivery.Application.Common.Models;
+using IDelivery.Application.Abstractions.Events;
+using IDelivery.Application.Dispatching;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,242 +9,85 @@ namespace IDelivery.Application;
 
 public static class DependencyInjection
 {
+    // Captura o assembly atual (camada Application) para servir de base para a varredura automática (Reflection)
+    private static readonly Assembly ApplicationAssembly = Assembly.GetExecutingAssembly();
+
+    /// <summary>
+    /// Método de extensão principal para registrar todos os serviços da camada Application no DI.
+    /// </summary>
     public static IServiceCollection AddApplication(
         this IServiceCollection services)
     {
-        // Registra automaticamente todos os validators encontrados no assembly IDelivery.Application
+        // Registra o despachante de comandos (CommandDispatcher) que coordena a execução e o Unit of Work
+        services.AddScoped<ICommandDispatcher, CommandDispatcher>();
+
+        // Executa as varreduras automáticas (Reflection) para registrar handlers e validadores sem configuração manual
+        RegisterCommandHandlers(services);
+        RegisterQueryHandlers(services);
+        RegisterDomainEventHandlers(services);
         RegisterValidators(services);
 
-        // Registra manualmente os CommandHandlers e QueryHandlers utilizados pela camada Application
-        RegisterHandlersManually(services);
-        
         return services;
     }
 
-    private static void RegisterHandlersManually(
-        IServiceCollection services)
+    /// <summary>
+    /// Varre o assembly procurando por todas as classes que implementam ICommandHandler e as registra automaticamente no DI.
+    /// </summary>
+    private static void RegisterCommandHandlers(IServiceCollection services)
     {
-        // Tenant Commands
-        services.AddScoped<
-            ICommandHandler<CreateTenantCommand, Guid>,
-            CreateTenantCommandHandler>();
+        var handlerTypes = ApplicationAssembly.GetTypes()
+            .Where(t => t is { IsAbstract: false, IsInterface: false }) // Ignora classes abstratas e interfaces puras
+            .SelectMany(t => t.GetInterfaces(), (type, iface) => (Type: type, Interface: iface)) // Associa cada classe às suas respectivas interfaces
+            .Where(x => x.Interface.IsGenericType && // Filtra apenas interfaces genéricas...
+                         (x.Interface.GetGenericTypeDefinition() == typeof(ICommandHandler<>) ||
+                          x.Interface.GetGenericTypeDefinition() == typeof(ICommandHandler<,>))); // ...que correspondam aos contratos de Command Handler
 
-        services.AddScoped<
-            ICommandHandler<ActivateTenantCommand>,
-            ActivateTenantCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<BlockTenantCommand>,
-            BlockTenantCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<DeleteTenantCommand>,
-            DeleteTenantCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<UpdateTenantCommand>,
-            UpdateTenantCommandHandler>();
-
-        // Auth Commands
-        services.AddScoped<
-            ICommandHandler<RegisterCommand, Guid>,
-            RegisterCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<LoginCommand, AuthResult>,
-            LoginCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<RefreshTokenCommand, AuthResult>,
-            RefreshTokenCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<ActivateAccountCommand>,
-            ActivateAccountCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<ForgotPasswordCommand>,
-            ForgotPasswordCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<ResetPasswordCommand>,
-            ResetPasswordCommandHandler>();
-
-        // Catalog Commands
-        services.AddScoped<
-            ICommandHandler<CreateCategoryCommand, Guid>,
-            CreateCategoryCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<UpdateCategoryCommand>,
-            UpdateCategoryCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<DeleteCategoryCommand>,
-            DeleteCategoryCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<CreateProductCommand, Guid>,
-            CreateProductCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<UpdateProductCommand>,
-            UpdateProductCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<DeleteProductCommand>,
-            DeleteProductCommandHandler>();
-
-        // Tenant Queries
-        services.AddScoped<
-            IQueryHandler<GetTenantQuery, TenantResponse>,
-            GetTenantQueryHandler>();
-
-        services.AddScoped<
-            IQueryHandler<GetTenantsQuery, PagedResult<TenantListItemResponse>>,
-            GetTenantsQueryHandler>();
-
-        // Catalog Queries
-        services.AddScoped<
-            IQueryHandler<GetCategoryQuery, CategoryResponse>,
-            GetCategoryQueryHandler>();
-
-        services.AddScoped<
-            IQueryHandler<GetCategoriesByTenantQuery, IReadOnlyList<CategoryResponse>>,
-            GetCategoriesByTenantQueryHandler>();
-
-        services.AddScoped<
-            IQueryHandler<GetProductQuery, ProductResponse>,
-            GetProductQueryHandler>();
-
-        services.AddScoped<
-            IQueryHandler<GetProductsByTenantQuery, IReadOnlyList<ProductResponse>>,
-            GetProductsByTenantQueryHandler>();
-
-        services.AddScoped<
-            IQueryHandler<GetProductsByCategoryQuery, IReadOnlyList<ProductResponse>>,
-            GetProductsByCategoryQueryHandler>();
-
-        // Cart Commands
-        services.AddScoped<
-            ICommandHandler<AddCartItemCommand>,
-            AddCartItemCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<RemoveCartItemCommand>,
-            RemoveCartItemCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<UpdateCartItemQuantityCommand>,
-            UpdateCartItemQuantityCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<ClearCartCommand>,
-            ClearCartCommandHandler>();
-
-        // Cart Queries
-        services.AddScoped<
-            IQueryHandler<GetCartQuery, CartResponse>,
-            GetCartQueryHandler>();
-
-        // Customer Commands
-        services.AddScoped<
-            ICommandHandler<CreateCustomerCommand, Guid>,
-            CreateCustomerCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<UpdateCustomerCommand>,
-            UpdateCustomerCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<DeleteCustomerCommand>,
-            DeleteCustomerCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<AddCustomerAddressCommand, Guid>,
-            AddCustomerAddressCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<RemoveCustomerAddressCommand>,
-            RemoveCustomerAddressCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<SetDefaultCustomerAddressCommand>,
-            SetDefaultCustomerAddressCommandHandler>();
-
-        // Customer Queries
-        services.AddScoped<
-            IQueryHandler<GetCustomerQuery, CustomerResponse>,
-            GetCustomerQueryHandler>();
-
-        // Delivery Commands
-        services.AddScoped<
-            ICommandHandler<CreateDeliverySettingsCommand, Guid>,
-            CreateDeliverySettingsCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<UpdateDeliverySettingsCommand>,
-            UpdateDeliverySettingsCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<DeleteDeliverySettingsCommand>,
-            DeleteDeliverySettingsCommandHandler>();
-
-        // Delivery Queries
-        services.AddScoped<
-            IQueryHandler<GetDeliverySettingsQuery, DeliverySettingsResponse>,
-            GetDeliverySettingsQueryHandler>();
-
-        // Order Commands
-        services.AddScoped<
-            ICommandHandler<CreateOrderCommand, Guid>,
-            CreateOrderCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<ConfirmOrderCommand>,
-            ConfirmOrderCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<StartPreparingOrderCommand>,
-            StartPreparingOrderCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<MarkOrderReadyForDeliveryCommand>,
-            MarkOrderReadyForDeliveryCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<StartDeliveryCommand>,
-            StartDeliveryCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<DeliverOrderCommand>,
-            DeliverOrderCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<FailDeliveryCommand>,
-            FailDeliveryCommandHandler>();
-
-        services.AddScoped<
-            ICommandHandler<CancelOrderCommand>,
-            CancelOrderCommandHandler>();
-
-        // Order Queries
-        services.AddScoped<
-            IQueryHandler<GetOrderQuery, OrderResponse>,
-            GetOrderQueryHandler>();
-
-        services.AddScoped<
-            IQueryHandler<GetOrdersQuery, PagedResult<OrderListItemResponse>>,
-            GetOrdersQueryHandler>();
+        foreach (var (type, iface) in handlerTypes)
+        {
+            // Registra dinamicamente no container (Ex: ICommandHandler<CreateUserCommand> -> CreateUserCommandHandler)
+            services.AddScoped(iface, type);
+        }
     }
 
+    /// <summary>
+    /// Varre o assembly procurando por todas as classes que implementam IQueryHandler e as registra automaticamente no DI.
+    /// </summary>
+    private static void RegisterQueryHandlers(IServiceCollection services)
+    {
+        var handlerTypes = ApplicationAssembly.GetTypes()
+            .Where(t => t is { IsAbstract: false, IsInterface: false })
+            .SelectMany(t => t.GetInterfaces(), (type, iface) => (Type: type, Interface: iface))
+            .Where(x => x.Interface.IsGenericType &&
+                         x.Interface.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)); // Filtra contratos de Query Handler
+
+        foreach (var (type, iface) in handlerTypes)
+        {
+            services.AddScoped(iface, type);
+        }
+    }
+
+    /// <summary>
+    /// Varre o assembly procurando por todas as classes que implementam IDomainEventHandler e as registra automaticamente no DI.
+    /// </summary>
+    private static void RegisterDomainEventHandlers(IServiceCollection services)
+    {
+        var handlerTypes = ApplicationAssembly.GetTypes()
+            .Where(t => t is { IsAbstract: false, IsInterface: false })
+            .SelectMany(t => t.GetInterfaces(), (type, iface) => (Type: type, Interface: iface))
+            .Where(x => x.Interface.IsGenericType &&
+                         x.Interface.GetGenericTypeDefinition() == typeof(IDomainEventHandler<>)); // Filtra contratos de Domain Event Handler
+
+        foreach (var (type, iface) in handlerTypes)
+        {
+            services.AddScoped(iface, type);
+        }
+    }
+
+    /// <summary>
+    /// Utiliza a biblioteca FluentValidation para varrer o assembly e registrar automaticamente todos os validadores encontrados.
+    /// </summary>
     private static void RegisterValidators(IServiceCollection services)
     {
-
-        // O CreateTenantCommandValidator é utilizado apenas como referência para identificar o assembly da Application
-        // O FluentValidation faz o scan de todo o assembly e registra automaticamente todos os validators encontrados, incluindo os validators de Auth, Tenants e outras funcionalidades
-        services.AddValidatorsFromAssemblyContaining<CreateTenantCommandValidator>();
-
-        //services.AddScoped<IValidator<CreateTenantCommand>, CreateTenantCommandValidator>();
+        services.AddValidatorsFromAssembly(ApplicationAssembly);
     }
 }

@@ -33,4 +33,9 @@ public interface IUserRepository : IRepository<User>
     /// Busca usuários por status.
     /// </summary>
     Task<IReadOnlyList<User>> GetByStatusAsync(UserStatus status, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Busca usuário por Id com ChangeTracker habilitado (entidade rastreada).
+    /// </summary>
+    Task<User?> GetByIdTrackedAsync(Guid id, CancellationToken cancellationToken = default);
 }

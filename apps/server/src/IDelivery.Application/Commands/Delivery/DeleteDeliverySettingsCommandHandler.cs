@@ -28,7 +28,11 @@ public sealed class DeleteDeliverySettingsCommandHandler : ICommandHandler<Delet
         if (settings is null)
             return Result.Failure(new Error("DeliverySettings.NotFound", "Configurações de entrega não encontradas"));
 
-        await _deliverySettingsRepository.DeleteAsync(settings, cancellationToken);
+        var deactivateResult = settings.Deactivate();
+        if (deactivateResult.IsFailure)
+            return Result.Failure(deactivateResult.Error);
+
+        await _deliverySettingsRepository.UpdateAsync(settings, cancellationToken);
 
         return Result.Success();
     }

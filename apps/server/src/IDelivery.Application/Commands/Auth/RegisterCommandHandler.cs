@@ -1,5 +1,4 @@
 using IDelivery.Application.Abstractions.CQRS;
-using IDelivery.Application.Abstractions.Messaging;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Application.Abstractions.Security;
 using IDelivery.Domain.Common.ValueObjects;
@@ -13,23 +12,13 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Gu
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly ISecureTokenGenerator _tokenGenerator;
-    private readonly ITokenHasher _tokenHasher;
-    private readonly IEmailService _emailService;
 
     public RegisterCommandHandler(
         IUserRepository userRepository,
-        IPasswordHasher passwordHasher,
-        ISecureTokenGenerator tokenGenerator,
-        ITokenHasher tokenHasher,
-        IEmailService emailService
-        )
+        IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
-        _tokenGenerator = tokenGenerator;
-        _tokenHasher = tokenHasher;
-        _emailService = emailService;
     }
 
     public async Task<Result<Guid>> Handle(RegisterCommand command, CancellationToken cancellationToken = default)
@@ -71,17 +60,7 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Gu
 
         var user = userResult.Value;
 
-        var activationToken = _tokenGenerator.Generate(32);
-        var activationTokenHash = _tokenHasher.Hash(activationToken);
-        var activationTokenExpiresAt = DateTime.UtcNow.AddHours(24);
-
-        user.SetActivationToken(activationTokenHash, activationTokenExpiresAt);
-
         await _userRepository.AddAsync(user, cancellationToken);
-
-        var activationPath = $"/activate?token={Uri.EscapeDataString(activationToken)}&email={Uri.EscapeDataString(command.Email)}";
-        
-        await _emailService.SendActivationEmailAsync(command.Email, activationPath, cancellationToken);
 
         return Result.Success(user.Id);
     }

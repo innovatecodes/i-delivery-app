@@ -11,6 +11,4 @@ public sealed class EmailOptions
     public string SmtpPass { get; init; } = string.Empty;
     public string SmtpHost { get; init; } = string.Empty;
     public string FromEmail { get; init; } = string.Empty;
-
-    public string ClientUrl { get; init; } = string.Empty;
 }

@@ -56,6 +56,8 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, AuthResu
         user.SetResetPasswordToken(refreshTokenHash, refreshTokenExpiresAt);
         user.RecordLogin();
 
+        _userRepository.Update(user);
+
         var roles = new[] { user.Role.ToString() };
         var accessToken = _jwtTokenService.GenerateAccessToken(user.Id, user.TenantId, roles);
         var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(15);

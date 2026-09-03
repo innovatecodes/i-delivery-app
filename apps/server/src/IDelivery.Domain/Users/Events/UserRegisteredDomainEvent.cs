@@ -21,3 +21,4 @@ public sealed class UserRegisteredDomainEvent : DomainEvent
         Role = role;
     }
 }
+

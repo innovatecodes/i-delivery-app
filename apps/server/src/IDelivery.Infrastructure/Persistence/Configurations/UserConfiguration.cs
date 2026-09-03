@@ -28,9 +28,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(200)
             .IsRequired();
 
-        builder.Property(u => u.PhoneNumber)
-            .HasColumnName("phone_number")
-            .HasMaxLength(20);
+        builder.OwnsOne(u => u.PhoneNumber, phoneBuilder =>
+        {
+            phoneBuilder.Property(p => p.Value)
+                .HasColumnName("phone_number")
+                .HasMaxLength(20);
+        });
 
         builder.Property(u => u.Role)
             .HasColumnName("role")

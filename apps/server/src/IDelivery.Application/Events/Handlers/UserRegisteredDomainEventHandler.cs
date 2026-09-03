@@ -1,34 +1,37 @@
 using IDelivery.Application.Abstractions.Events;
-using IDelivery.Application.Abstractions.Messaging;
 using IDelivery.Application.Abstractions.Persistence;
 using IDelivery.Application.Abstractions.Security;
+
 using IDelivery.Domain.Users.Events;
 
-namespace IDelivery.Infrastructure.Events.Handlers;
+namespace IDelivery.Application.Events.Handlers;
 
 public sealed class UserRegisteredDomainEventHandler : IDomainEventHandler<UserRegisteredDomainEvent>
 {
     private readonly ISecureTokenGenerator _tokenGenerator;
     private readonly ITokenHasher _tokenHasher;
-    private readonly IEmailService _emailService;
     private readonly IUserRepository _userRepository;
+    private readonly IDomainEventDispatcher _eventDispatcher;
+    private readonly IUnitOfWork _unitOfWork;
 
     public UserRegisteredDomainEventHandler(
         ISecureTokenGenerator tokenGenerator,
         ITokenHasher tokenHasher,
-        IEmailService emailService,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IDomainEventDispatcher domainEventDispatcher,
+        IUnitOfWork unitOfWork)
     {
         _tokenGenerator = tokenGenerator;
         _tokenHasher = tokenHasher;
-        _emailService = emailService;
         _userRepository = userRepository;
+        _eventDispatcher = domainEventDispatcher;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task Handle(UserRegisteredDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(domainEvent.UserId, cancellationToken);
-        
+        var user = await _userRepository.GetByIdTrackedAsync(domainEvent.UserId, cancellationToken);
+
         if (user is null)
         {
             return;
@@ -40,7 +43,15 @@ public sealed class UserRegisteredDomainEventHandler : IDomainEventHandler<UserR
 
         user.SetActivationToken(activationTokenHash, activationTokenExpiresAt);
 
-        var activationLink = $"https://app.idelivery.com/activate?token={activationToken}&email={Uri.EscapeDataString(user.Email.Value)}";
-        await _emailService.SendActivationEmailAsync(user.Email.Value, activationLink, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Dispara o evento específico informando que o token foi gerado para este usuário
+        var tokenGeneratedEvent = new UserActivationTokenGeneratedDomainEvent(
+            user.Id,
+            user.Email.Value,
+            activationToken);
+
+        await _eventDispatcher.DispatchAsync(tokenGeneratedEvent, cancellationToken);
     }
 }
+

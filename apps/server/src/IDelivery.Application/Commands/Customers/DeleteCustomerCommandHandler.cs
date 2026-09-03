@@ -31,7 +31,11 @@ public sealed class DeleteCustomerCommandHandler : ICommandHandler<DeleteCustome
         if (customer.TenantId != tenantId.Value)
             return Result.Failure(new Error("Customer.AccessDenied", "Acesso negado"));
 
-        await _customerRepository.DeleteAsync(customer, cancellationToken);
+        var deactivateResult = customer.Deactivate();
+        if (deactivateResult.IsFailure)
+            return Result.Failure(deactivateResult.Error);
+
+        await _customerRepository.UpdateAsync(customer, cancellationToken);
 
         return Result.Success();
     }

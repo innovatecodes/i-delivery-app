@@ -74,6 +74,9 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             ConflictException =>
                 HttpStatusCode.Conflict,
 
+            NotSupportedException =>
+                HttpStatusCode.InternalServerError,  
+
             ArgumentOutOfRangeException =>
                 HttpStatusCode.BadRequest,
 
@@ -101,8 +104,11 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             HttpStatusCode.Conflict =>
                 "Conflict",
 
+            HttpStatusCode.InternalServerError =>
+                "Internal Server Error",
+
             _ =>
-                "Internal Server Error"
+                "An error occurred"
         };
     }
 

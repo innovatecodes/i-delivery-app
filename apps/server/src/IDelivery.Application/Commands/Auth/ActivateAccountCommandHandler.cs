@@ -40,6 +40,8 @@ public sealed class ActivateAccountCommandHandler : ICommandHandler<ActivateAcco
             return Result.Failure(activationResult.Error);
         }
 
+        _userRepository.Update(user);
+
         return Result.Success();
     }
 }

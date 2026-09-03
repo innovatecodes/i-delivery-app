@@ -5,6 +5,7 @@ using IDelivery.Application.Abstractions.Authentication;
 using IDelivery.Application.Common.Models;
 using IDelivery.Domain.Users.Entities;
 using IDelivery.Domain.Users.Enums;
+using IDelivery.Domain.Users.Events;
 using IDelivery.Domain.Roles;
 using IDelivery.Domain.Common.ValueObjects;
 using FluentAssertions;
@@ -20,25 +21,17 @@ public class RegisterCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _mockUserRepository;
     private readonly Mock<IPasswordHasher> _mockPasswordHasher;
-    private readonly Mock<ISecureTokenGenerator> _mockTokenGenerator;
-    private readonly Mock<ITokenHasher> _mockTokenHasher;
-    private readonly Mock<IEmailService> _mockEmailService;
 
     public RegisterCommandHandlerTests()
     {
         _mockUserRepository = new Mock<IUserRepository>();
         _mockPasswordHasher = new Mock<IPasswordHasher>();
-        _mockTokenGenerator = new Mock<ISecureTokenGenerator>();
-        _mockTokenHasher = new Mock<ITokenHasher>();
-        _mockEmailService = new Mock<IEmailService>();
     }
 
     [Fact]
     public async Task Handle_WithValidCommand_ShouldRegisterUser()
     {
         _mockPasswordHasher.Setup(x => x.Hash(It.IsAny<string>())).Returns("hashed-password");
-        _mockTokenGenerator.Setup(x => x.Generate(32)).Returns("activation-token");
-        _mockTokenHasher.Setup(x => x.Hash("activation-token")).Returns("token-hash");
 
         var command = new RegisterCommand(
             "john@test.com",
@@ -48,17 +41,13 @@ public class RegisterCommandHandlerTests
 
         var handler = new RegisterCommandHandler(
             _mockUserRepository.Object,
-            _mockPasswordHasher.Object,
-            _mockTokenGenerator.Object,
-            _mockTokenHasher.Object,
-            _mockEmailService.Object);
+            _mockPasswordHasher.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeEmpty();
         _mockUserRepository.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
-        _mockEmailService.Verify(x => x.SendActivationEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -74,15 +63,32 @@ public class RegisterCommandHandlerTests
 
         var handler = new RegisterCommandHandler(
             _mockUserRepository.Object,
-            _mockPasswordHasher.Object,
-            _mockTokenGenerator.Object,
-            _mockTokenHasher.Object,
-            _mockEmailService.Object);
+            _mockPasswordHasher.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("User.EmailAlreadyExists");
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotGenerateToken()
+    {
+        _mockPasswordHasher.Setup(x => x.Hash(It.IsAny<string>())).Returns("hashed-password");
+
+        var command = new RegisterCommand(
+            "john@test.com",
+            "Password123!",
+            "John Doe");
+
+        var handler = new RegisterCommandHandler(
+            _mockUserRepository.Object,
+            _mockPasswordHasher.Object);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        _mockUserRepository.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
 
@@ -215,6 +221,7 @@ public class LoginCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.AccessToken.Should().Be("jwt-token");
         result.Value.RefreshToken.Should().Be("refresh-token");
+        _mockUserRepository.Verify(x => x.Update(user), Times.Once);
     }
 
     [Fact]
@@ -365,6 +372,8 @@ public class ActivateAccountCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        user.Status.Should().Be(UserStatus.Active);
+        _mockUserRepository.Verify(x => x.Update(user), Times.Once);
     }
 
     [Fact]
@@ -417,20 +426,14 @@ public class ActivateAccountCommandValidatorTests
 public class ForgotPasswordCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _mockUserRepository;
-    private readonly Mock<ISecureTokenGenerator> _mockTokenGenerator;
-    private readonly Mock<ITokenHasher> _mockTokenHasher;
-    private readonly Mock<IEmailService> _mockEmailService;
 
     public ForgotPasswordCommandHandlerTests()
     {
         _mockUserRepository = new Mock<IUserRepository>();
-        _mockTokenGenerator = new Mock<ISecureTokenGenerator>();
-        _mockTokenHasher = new Mock<ITokenHasher>();
-        _mockEmailService = new Mock<IEmailService>();
     }
 
     [Fact]
-    public async Task Handle_WithExistingEmail_ShouldSendEmail()
+    public async Task Handle_WithExistingActiveUser_ShouldDispatchPasswordResetEvent()
     {
         var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
         Assert.True(userResult.IsSuccess);
@@ -439,21 +442,16 @@ public class ForgotPasswordCommandHandlerTests
 
         _mockUserRepository.Setup(x => x.GetByEmailAsync("john@test.com", It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
-        _mockTokenGenerator.Setup(x => x.Generate(32)).Returns("reset-token");
-        _mockTokenHasher.Setup(x => x.Hash("reset-token")).Returns("reset-token-hash");
 
         var command = new ForgotPasswordCommand("john@test.com");
 
-        var handler = new ForgotPasswordCommandHandler(
-            _mockUserRepository.Object,
-            _mockTokenGenerator.Object,
-            _mockTokenHasher.Object,
-            _mockEmailService.Object);
+        var handler = new ForgotPasswordCommandHandler(_mockUserRepository.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        _mockEmailService.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockUserRepository.Verify(x => x.Update(user), Times.Once);
+        user.DomainEvents.Should().Contain(e => e is UserPasswordResetRequestedDomainEvent);
     }
 
     [Fact]
@@ -464,16 +462,32 @@ public class ForgotPasswordCommandHandlerTests
 
         var command = new ForgotPasswordCommand("nonexistent@test.com");
 
-        var handler = new ForgotPasswordCommandHandler(
-            _mockUserRepository.Object,
-            _mockTokenGenerator.Object,
-            _mockTokenHasher.Object,
-            _mockEmailService.Object);
+        var handler = new ForgotPasswordCommandHandler(_mockUserRepository.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        _mockEmailService.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockUserRepository.Verify(x => x.Update(It.IsAny<User>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithInactiveUser_ShouldReturnSuccess()
+    {
+        var userResult = User.Create(Email.Create("john@test.com").Value, "password123!", "John Doe", Role.Customer, Guid.NewGuid());
+        Assert.True(userResult.IsSuccess);
+        var user = userResult.Value;
+
+        _mockUserRepository.Setup(x => x.GetByEmailAsync("john@test.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        var command = new ForgotPasswordCommand("john@test.com");
+
+        var handler = new ForgotPasswordCommandHandler(_mockUserRepository.Object);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        _mockUserRepository.Verify(x => x.Update(It.IsAny<User>()), Times.Never);
     }
 }
 
@@ -556,6 +570,8 @@ public class ResetPasswordCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        user.PasswordHash.Should().Be("new-password-hash");
+        _mockUserRepository.Verify(x => x.Update(user), Times.Once);
     }
 
     [Fact]
@@ -672,6 +688,7 @@ public class RefreshTokenCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.AccessToken.Should().Be("new-jwt-token");
         result.Value.RefreshToken.Should().Be("new-refresh-token");
+        _mockUserRepository.Verify(x => x.Update(user), Times.Once);
     }
 
     [Fact]

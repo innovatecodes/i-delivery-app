@@ -19,7 +19,11 @@ public sealed class DeleteCategoryCommandHandler : ICommandHandler<DeleteCategor
         if (category is null)
             return Result.Failure(new Error("Category.NotFound", "Categoria não encontrada"));
 
-        await _categoryRepository.DeleteAsync(category, cancellationToken);
+        var deactivateResult = category.Deactivate();
+        if (deactivateResult.IsFailure)
+            return Result.Failure(deactivateResult.Error);
+
+        await _categoryRepository.UpdateAsync(category, cancellationToken);
 
         return Result.Success();
     }

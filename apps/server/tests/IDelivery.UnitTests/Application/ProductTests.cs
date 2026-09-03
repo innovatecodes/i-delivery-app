@@ -204,7 +204,7 @@ public class DeleteProductCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithValidCommand_ShouldDeleteProduct()
+    public async Task Handle_WithValidCommand_ShouldDeactivateProduct()
     {
         var productResult = Product.Create(Guid.NewGuid(), "Coca-Cola", Money.Create(5.50m, "BRL").Value, null, null, null, 0);
         Assert.True(productResult.IsSuccess);
@@ -220,7 +220,8 @@ public class DeleteProductCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        _mockProductRepository.Verify(x => x.DeleteAsync(product, It.IsAny<CancellationToken>()), Times.Once);
+        product.IsActive.Should().BeFalse();
+        _mockProductRepository.Verify(x => x.UpdateAsync(product, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

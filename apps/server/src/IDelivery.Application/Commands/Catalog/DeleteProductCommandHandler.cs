@@ -19,7 +19,11 @@ public sealed class DeleteProductCommandHandler : ICommandHandler<DeleteProductC
         if (product is null)
             return Result.Failure(new Error("Product.NotFound", "Produto não encontrado"));
 
-        await _productRepository.DeleteAsync(product, cancellationToken);
+        var deactivateResult = product.Deactivate();
+        if (deactivateResult.IsFailure)
+            return Result.Failure(deactivateResult.Error);
+
+        await _productRepository.UpdateAsync(product, cancellationToken);
 
         return Result.Success();
     }

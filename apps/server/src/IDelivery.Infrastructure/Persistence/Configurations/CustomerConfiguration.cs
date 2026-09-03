@@ -22,13 +22,20 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasMaxLength(200)
             .IsRequired();
 
-        builder.Property(c => c.Email)
-            .HasMaxLength(200)
-            .IsRequired();
+        builder.OwnsOne(c => c.Email, emailBuilder =>
+        {
+            emailBuilder.Property(e => e.Value)
+                .HasColumnName("email")
+                .HasMaxLength(200)
+                .IsRequired();
+        });
 
-        builder.Property(c => c.PhoneNumber)
-            .HasMaxLength(20)
-            .IsRequired(false);
+        builder.OwnsOne(c => c.PhoneNumber, phoneBuilder =>
+        {
+            phoneBuilder.Property(p => p.Value)
+                .HasColumnName("phone_number")
+                .HasMaxLength(20);
+        });
 
         builder.Property(c => c.Notes)
             .HasMaxLength(1000)
@@ -45,10 +52,6 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 
         builder.HasIndex(c => new { c.TenantId, c.UserId })
             .HasDatabaseName("IX_Customers_TenantUser")
-            .IsUnique();
-
-        builder.HasIndex(c => new { c.TenantId, c.Email })
-            .HasDatabaseName("IX_Customers_TenantEmail")
             .IsUnique();
 
         builder.Ignore(c => c.Addresses);
