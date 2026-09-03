@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -63,14 +63,14 @@ namespace IDelivery.Infrastructure.Persistence.Migrations
                 table: "Carts",
                 columns: new[] { "TenantId", "SessionId" },
                 unique: true,
-                filter: "[SessionId] IS NOT NULL");
+                filter: "\"SessionId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Carts_TenantUser",
                 table: "Carts",
                 columns: new[] { "TenantId", "UserId" },
                 unique: true,
-                filter: "[UserId] IS NOT NULL");
+                filter: "\"UserId\" IS NOT NULL");
         }
 
         /// <inheritdoc />

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -78,7 +78,7 @@ namespace IDelivery.Infrastructure.Persistence.Migrations
                 name: "IX_Orders_TenantId_DeliveryDriverId",
                 table: "Orders",
                 columns: new[] { "TenantId", "DeliveryDriverId" },
-                filter: "[DeliveryDriverId] IS NOT NULL");
+                filter: "\"DeliveryDriverId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_TenantId_State",
