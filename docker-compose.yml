@@ -1,22 +1,21 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: i-delivery-postgres
     environment:
-      POSTGRES_DB: i_delivery
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
 
   backend:
     build:
@@ -24,11 +23,23 @@ services:
       dockerfile: docker/server/Dockerfile
     container_name: i-delivery-backend
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Host=postgres;Database=i_delivery;Username=postgres;Password=postgres"
-      Jwt__Secret: "your-super-secret-jwt-key-change-in-production-min-32-chars"
-      Jwt__Issuer: "i-delivery"
-      Jwt__Audience: "i-delivery-clients"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://+:8080}
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
+      Jwt__Secret: ${Jwt__Secret}
+      Jwt__Issuer: ${Jwt__Issuer}
+      Jwt__Audience: ${Jwt__Audience}
+      Jwt__AccessTokenExpirationMinutes: ${Jwt__AccessTokenExpirationMinutes:-30}
+      Jwt__RefreshTokenExpirationDays: ${Jwt__RefreshTokenExpirationDays:-7}
+      ClientSettings__BaseUrl: ${ClientSettings__BaseUrl}
+      EmailOptions__EnableEmailSending: ${EmailOptions__EnableEmailSending:-false}
+      EmailOptions__SmtpHost: ${EmailOptions__SmtpHost}
+      EmailOptions__SmtpPort: ${EmailOptions__SmtpPort:-587}
+      EmailOptions__SmtpUser: ${EmailOptions__SmtpUser}
+      EmailOptions__SmtpPassword: ${EmailOptions__SmtpPassword}
+      EmailOptions__UseSsl: ${EmailOptions__UseSsl:-true}
+      EmailOptions__FromName: ${EmailOptions__FromName:-iDelivery}
+      EmailOptions__FromEmail: ${EmailOptions__FromEmail}
     ports:
       - "5000:8080"
     depends_on:
@@ -39,6 +50,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
 
 volumes:
   postgres_data:

@@ -12,11 +12,14 @@ obj/
 
 # Docker
 docker-compose.override.yml
+docker-compose.prod.yml
 
 # Environment
 .env
 .env.local
 .env.*.local
+.env.prod
+.env.staging
 
 # IDE
 .idea/
