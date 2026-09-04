@@ -26,11 +26,11 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://+:8080}
       ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
-      Jwt__Secret: ${Jwt__Secret}
-      Jwt__Issuer: ${Jwt__Issuer}
-      Jwt__Audience: ${Jwt__Audience}
-      Jwt__AccessTokenExpirationMinutes: ${Jwt__AccessTokenExpirationMinutes:-30}
-      Jwt__RefreshTokenExpirationDays: ${Jwt__RefreshTokenExpirationDays:-7}
+      JwtOptions__Secret: ${JwtOptions__Secret}
+      JwtOptions__Issuer: ${JwtOptions__Issuer}
+      JwtOptions__Audience: ${JwtOptions__Audience}
+      JwtOptions__AccessTokenExpirationMinutes: ${JwtOptions__AccessTokenExpirationMinutes:-30}
+      JwtOptions__RefreshTokenExpirationDays: ${JwtOptions__RefreshTokenExpirationDays:-7}
       ClientSettings__BaseUrl: ${ClientSettings__BaseUrl}
       EmailOptions__EnableEmailSending: ${EmailOptions__EnableEmailSending:-false}
       EmailOptions__SmtpHost: ${EmailOptions__SmtpHost}
