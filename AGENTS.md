@@ -24,7 +24,7 @@ Faça:
 6. análise de autenticação, multi-tenancy e infraestrutura;
 7. build/testes atuais;
 8. comparação com as capacidades do plano;
-9. criação/atualização de `docs/implementation-status.md`;
+9. criação/atualização de `docs/implementation-status.md` (obrigatório);
 10. diagnóstico final.
 
 Depois pare.
@@ -33,7 +33,7 @@ Depois pare.
 
 Antes de editar:
 
-- consulte `implementation-status.md`;
+- consulte `implementation-status.md` (obrigatório);
 - pesquise implementação equivalente;
 - confirme o gap;
 - verifique se a mudança planejada impacta o schema (entidade/DbContext) e, se sim, já preveja a necessidade de migration no plano;
@@ -50,6 +50,10 @@ Se houver problema arquitetural, corrija somente o necessário.
 - **Backend (`docker/server/Dockerfile`):** Sempre que um novo projeto `.csproj` for adicionado, removido ou renomeado na solução .NET, você **deve** atualizar automaticamente o `Dockerfile` do server, inserindo o `COPY` correspondente antes do comando `dotnet restore`.
 - **Frontend (`docker/client/Dockerfile` - Futuro):** Quando a camada de frontend for implementada, crie e mantenha o `Dockerfile` correspondente (seguindo o padrão de copiar os arquivos de dependência — ex: `package.json` — antes de rodar o comando de instalação/build para otimizar o cache).
 
+### Regra de Atualização de Documentação e Configuração (README)
+- **Documentação da Raiz e Fluxo de Execução (obrigatório)::** Sempre que houver uma alteração estrutural significativa no projeto — especialmente no fluxo de execução, dependências globais ou inclusão de arquivos cruciais na raiz do repositório (como `.env`, `.env.example`, novos scripts de inicialização, alteração de portas ou ferramentas de build) —, você **deve** atualizar obrigatoriamente o `README.md` principal da aplicação.
+- Garanta que o README reflita de forma clara o passo a passo atualizado para que qualquer desenvolvedor (ou agente) consiga rodar o projeto do zero sem adivinhar configurações de ambiente.
+  
 ### Regra de Migrations (EF Core)
 - Sempre que uma alteração for feita em **entidades, DbContext, Fluent API (`OnModelCreating`), Value Objects mapeados, ou qualquer configuração que afete o schema**, você **deve**, antes de considerar a etapa concluída:
   1. Verificar se existe uma migration pendente para essa alteração (`dotnet ef migrations has-pending-model-changes` ou comparação manual do modelo com a última migration aplicada).
