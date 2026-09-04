@@ -206,4 +206,4 @@ ForgotPasswordCommandHandler → user.RequestPasswordReset() → UserPasswordRes
 - `tests/IDelivery.UnitTests/Application/Payments/PaymentHandlerTests.cs`
 
 ## Próxima etapa recomendada
-**B13 — Pagamento V1** ou **B19 — API e qualidade** (OpenAPI/Swagger, mais controllers)
+**B19 — API e qualidade** (OpenAPI/Swagger, mais controllers, paginação, testes de API)
